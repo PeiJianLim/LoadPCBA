@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="POU_TestGitHub" Id="{b3b56a95-9553-4b01-b7d0-5e99422eb172}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM POU_TestGitHub
+VAR
+	input : BOOL;
+	output : BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[output := input;]]></ST>
+    </Implementation>
+    <LineIds Name="POU_TestGitHub">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

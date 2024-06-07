@@ -132,6 +132,9 @@
     <Compile Include="POUs\General\NewLotEndLot.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\POU_TestGitHub.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\Station\ST00_Conveyor\ST00_ChangeRecipe.TcPOU">
       <SubType>Code</SubType>
     </Compile>
