@@ -5,13 +5,24 @@
 VAR
 	input : BOOL;
 	output : BOOL;
+	tonTimer: TON;
+	counter : INT;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[output := input;]]></ST>
+      <ST><![CDATA[output := input;
+tonTimer(IN:=TRUE,PT:=T#5S);
+IF tonTimer.Q THEN
+	tonTimer(IN:=FALSE);
+	counter := counter + 1;
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="POU_TestGitHub">
       <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="15" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
