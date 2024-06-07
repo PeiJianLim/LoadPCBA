@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Manual" Id="{2c830645-a777-4fb6-95de-fdf02109be81}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+//===================================
+//General
+//===================================
+	M_bNewLot					: BOOL;
+	M_bNewLotConfirm			: BOOL;
+	M_bLotStarted				: BOOL;
+	M_bEndLot					: BOOL;
+	M_bDoorLock					: BOOL;
+	M_bLoadRecipe				: BOOL;
+ 
+	M_bStart					: BOOL;
+	M_bStop						: BOOL;
+	M_bReset					: BOOL;
+//===================================
+//Machine Control
+//===================================
+	M_CheckIOUse				: BOOL;
+	
+//===================================
+//Conveyor
+//===================================
+
+	M00_bLifterCylUp			: BOOL;
+	M00_bLifterCylUpDone		: BOOL;
+	M00_bLifterCylDown			: BOOL;
+	M00_bLifterCylDownDone		: BOOL;
+	
+	M00_bStopperCylBlock		: BOOL;
+	M00_bStopperCylBlockDone	: BOOL;	
+	M00_bStopperCylRelease		: BOOL;
+	M00_bStopperCylReleaseDone	: BOOL;	
+	
+	
+//===================================
+//ST10 Barcode Scanner
+//===================================
+	M10_bTriggerScannerEnable		: BOOL;
+	M10_bTriggerScannerEnableReady 	: BOOL;
+	M10_bTriggerScannerDone			: BOOL;
+	M10_bTriggerScanner				: BOOL;
+	M10_bScannerResultDone			: BOOL;
+	M10_sScannerBarcode				: STRING;
+
+
+//===================================
+//ST20 Pick And Place
+//===================================
+	M20_bTriggerScannerEnable		: BOOL;
+	M20_bTriggerScannerEnableReady 	: BOOL;
+	M20_bTriggerScannerDone			: BOOL;
+	M20_bTriggerScanner				: BOOL;
+	M20_bScannerResultDone			: BOOL;
+	M20_sScannerBarcode				: STRING;
+
+	M20_bChangeRobotProgramID	: BOOL;
+	M20_byteRobotProgramID		: BYTE;
+	M20_bAppID0					: BOOL;
+	M20_bAppID1					: BOOL;
+	M20_bAppID2					: BOOL;
+	
+	M20_bRobotHome				: BOOL;
+	M20_bRobotEnable			: BOOL;
+	M20_bRobotStart				: BOOL;
+	M20_bRobotStop				: BOOL;
+	M20_bRobotReset				: BOOL;
+	M20_bRobotPause				: BOOL;
+	M20_bRobotContinue			: BOOL;
+	M20_bRobotPowerOn			: BOOL;
+	M20_bRobotStandbyPos		: BOOL;
+	M20_bClearMessage			: BOOL;
+	M20_bRobotGripperOnOff		: BOOL;
+	M20_bRobotTrayFiducial1		: BOOL;
+	M20_bRobotTrayFiducial2		: BOOL;
+	M20_bRobotPalletFiducial1	: BOOL;
+	M20_bRobotPalletFiducial2	: BOOL;
+	M20_bRobotPickPCBAPos		: BOOL;
+	M20_bRobotPlacePCBAPos		: BOOL;
+	M20_bRobotAtStandbyTray		: BOOL;
+	M20_bRobotAtStandbyPallet	: BOOL;
+	M20_bWithVisionData			: BOOL;
+	
+	M20_bVisionTrayFiducial1	: BOOL;
+	M20_bVisionTrayFiducial2	: BOOL;
+	M20_bVisionPalletFiducial1	: BOOL;
+	M20_bVisionPalletFiducial2	: BOOL;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

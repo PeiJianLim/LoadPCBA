@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Auto" Id="{580c5a65-1933-4c64-b565-27f5bbdbbc95}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+//===================================
+//General
+//===================================	
+	A_bOverallStationStatus				: BOOL; //TO CONVEYOR INCOMING A_BSTATION FAILED FALSE, JOB DONE FALSE ( trigger HMI to collect data wait HMI false)
+	A_bUpdatedMESStationStatus			: BOOL; // decide whether true: pass false: failed //
+	//Pallet serial number eg: 12344
+	//
+	
+//===================================
+//Conveyor
+//===================================
+	A00_bLifterCylUp			: BOOL;
+	A00_bLifterCylUpDone		: BOOL;
+	A00_bLifterCylDown			: BOOL;
+	A00_bLifterCylDownDone		: BOOL;
+                            	
+	A00_bStopperCylBlock		: BOOL;
+	A00_bStopperCylBlockDone	: BOOL;	
+	A00_bStopperCylRelease		: BOOL;
+	A00_bStopperCylReleaseDone	: BOOL;	
+
+	
+//===================================
+//ST10 Barcode Scanner
+//===================================
+	A10_bTriggerScannerEnable		: BOOL;
+	A10_bTriggerScannerEnableReady 	: BOOL;
+	A10_bTriggerScanner				: BOOL;
+	A10_bTriggerScannerDone			: BOOL;
+	A10_bScannerResultDone			: BOOL;
+	A10_sScannerBarcode				: STRING;
+
+//===================================
+//ST20 Pick And Place
+//===================================	
+	A20_bMESCheckDone				: BOOL;
+	A20_bMESPass					: BOOL;
+	A20_bMESCheck					: BOOL;
+	
+	A20_bTriggerScannerEnable		: BOOL;
+	A20_bTriggerScannerEnableReady 	: BOOL;
+	A20_bTriggerScanner				: BOOL;
+	A20_bTriggerScannerDone			: BOOL;
+	A20_bScannerResultDone			: BOOL;
+	A20_sScannerBarcode				: STRING;
+	
+	A20_bIsNewTray					: BOOL;
+	A20_bTrayReady					: BOOL;
+	A20_bTrayFinish					: BOOL;
+	
+	A20_bRobotInitialize			: BOOL;
+	A20_bRobotInitializeDone		: BOOL;
+	A20_bPalletReady				: BOOL;
+	                            	
+	A20_bRobotAtStandbyTray			: BOOL;
+	A20_bRobotAtStandbyPallet		: BOOL;
+	                            	
+	//Robot                     	
+	A20_bRobotChangeRecipe			: BOOL;
+	A20_bRobotChangeRecipeDone		: BOOL;
+	
+	A20_bRobotCheckDatum			: BOOL;
+	A20_bRobotCheckDatumDone		: BOOL;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

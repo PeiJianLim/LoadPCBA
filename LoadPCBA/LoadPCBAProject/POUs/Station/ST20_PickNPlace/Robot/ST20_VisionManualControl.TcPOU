@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST20_VisionManualControl" Id="{f3db2985-5627-426a-b1d7-32ec64798b2d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST20_VisionManualControl
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF G_MachineControl.stMachineOperateMode.MANUAL THEN
+	
+	IF G_Manual.M20_bVisionTrayFiducial1 THEN
+		G_Vision.V20_bRespone := FALSE;
+		G_Vision.V20_sSendCmd := 'TRG,0';
+		G_Vision.V20_bTrigger := TRUE;
+		G_Manual.M20_bVisionTrayFiducial1 := FALSE;	
+	END_IF
+	
+	IF G_Manual.M20_bVisionTrayFiducial2 THEN
+		G_Vision.V20_bRespone := FALSE;
+		G_Vision.V20_sSendCmd := 'TRG,1';
+		G_Vision.V20_bTrigger := TRUE;
+		G_Manual.M20_bVisionTrayFiducial2 := FALSE;	
+	END_IF
+	
+	IF G_Manual.M20_bVisionPalletFiducial1 THEN
+		G_Vision.V20_bRespone := FALSE;
+		G_Vision.V20_sSendCmd := 'TRG,2';
+		G_Vision.V20_bTrigger := TRUE;
+		G_Manual.M20_bVisionPalletFiducial1 := FALSE;	
+	END_IF
+	
+	IF G_Manual.M20_bVisionPalletFiducial2 THEN
+		G_Vision.V20_bRespone := FALSE;
+		G_Vision.V20_sSendCmd := 'TRG,3';
+		G_Vision.V20_bTrigger := TRUE;
+		G_Manual.M20_bVisionPalletFiducial2 := FALSE;	
+	END_IF
+	
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="ST20_VisionManualControl">
+      <LineId Id="6" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="7" Count="5" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="13" Count="5" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="20" Count="5" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="26" Count="4" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

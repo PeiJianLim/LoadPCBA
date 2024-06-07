@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Recipe" Id="{7298c5f3-f6e4-4eb5-b7fd-da20fa3fd931}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+ 
+//===================================
+// General 
+//===================================
+	R_sProductName					: STRING;
+	
+//===================================
+//ST00 Conveyor
+//===================================
+//	R00_stConveyorWidthrecipe		: ST_WidthRecipe;
+	
+//===================================
+//ST20 RobotSCARA
+//===================================
+	R20_byteRobotProgramID		: BYTE;
+	R20_stTrayPosition			: ST_VisionRecipe;
+	R20_rTrayZaxisPick			: REAL;
+	R20_stPalletPosition		: ST_VisionRecipe;
+	R20_rPalletZaxisPlace		: REAL;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

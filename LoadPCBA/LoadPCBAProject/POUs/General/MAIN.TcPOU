@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MAIN" Id="{cbb9dcaf-c549-45c0-82d9-9527d25e6a7d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN_1
+VAR
+	fbTime : FB_LocalSystemTime := ( bEnable := TRUE, dwCycle := 1 );
+	sTime: STRING;
+	sDateTime: STRING;
+	sDate: STRING;
+	fbMachineControl: FB_MachineControl;
+	bStationError: BOOL;
+	bAllError: BOOL;
+	fbOEETimer: FB_OEETime;
+	RTIRIG_NewLot: R_TRIG;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbTime();
+
+IF fbTime.bValid THEN
+	sDateTime := DT_TO_STRING(SYSTEMTIME_TO_DT(fbTime.systemTime));
+	sDate := MID(sDateTime,10,4);
+	sTime := RIGHT(sDateTime,8);
+END_IF
+
+bStationError := G_MachineControl.arrstStationControl[0].bError OR G_MachineControl.arrstStationControl[1].bError OR G_MachineControl.arrstStationControl[2].bError;
+
+bAllError := G_MachineControl.bMainError OR bStationError;
+
+fbMachineControl(
+	In_bAutoMode:= TRUE, 
+	In_bManualMode:= , 
+	In_bDryRunMode:= G_MachineControl.bDryRun, 
+	IN_bStartButton:= , 
+	IN_bStopButton:= , 
+	IN_bResetButton:= , 
+	IN_bEmergencyStop:= TRUE, 
+	IN_bMainAirPressureSwitch:= TRUE, 
+	In_bDoorLocked:= TRUE OR G_MachineControl.bDoorIsLocked OR G_MachineControl.bBypassDoor, 
+	In_bSafetyModeON:= TRUE, 
+	In_bSafetyModeOFF:= , 
+	In_InitializeTimeout:= , 
+	In_InitializeDone:= G_MachineControl.bInitializeDone,  
+	In_bEndLot:= , 
+	In_bError:= , 
+	Out_bReset=> G_MachineControl.bMachineReset,  
+	Out_bInitialize=> G_MachineControl.bInitialize, 
+	Out_sCurrentState=> , 
+	Out_bRunning=> , 
+	Out_bErrorInitialize=> , 
+	Out_bErrorDoorLock=> , 
+	Out_bErrorSafety=> , 
+	Out_bErrorEStop=> , 
+	Out_bErrorSwitch=> , 
+	Out_bErrorMainAirPressureSwitch=> , 
+	Out_StartButtonLight=> , 
+	Out_StopButtonLight=> , 
+	Out_ResetButtonLight=> , 
+	Out_RedTowerlight=> , 
+	Out_YellowTowerlight=> , 
+	Out_GreenTowerlight=> , 
+	Out_BlueTowerlight=> , 
+	Out_Buzzer=> , 
+	InOut_OperateMode:= G_MachineControl.stMachineOperateMode, 
+	InOut_CurrentMode:= G_MachineControl.stMachineCurrentMode);
+	
+IF G_MachineControl.bBypassWholeMachine THEN
+	G_MachineControl.arrstStationControl[1].bByPassStation := TRUE;
+	G_MachineControl.arrstStationControl[2].bByPassStation := TRUE;
+END_IF
+ 
+fbOEETimer(
+	In_stMachineCurrentMode:= G_MachineControl.stMachineCurrentMode, 
+	In_iTotalReject:= G_Values.VA_iTotalReject, 
+	In_iTotalPass:= G_Values.VA_iTotalPass, 
+	Out_iTotalOutput=> G_Values.VA_iTotalOutput, 
+	InOut_stOEETime:= G_MachineControl.stOEETime);
+ 
+RTIRIG_NewLot(CLK := G_Manual.M_bLotStarted); ///to do with conveyor
+IF RTIRIG_NewLot.Q THEN
+	G_MachineControl.stOEETime.IdleTime := LTIME#0MS;
+	G_MachineControl.stOEETime.RunTime := LTIME#0MS;
+	G_MachineControl.stOEETime.DownTime := LTime#0MS;
+	G_Values.VA_iTotalReject := 0;
+	G_Values.VA_iTotalPass := 0;
+END_IF	
+	
+IF G_MachineControl.stMachineOperateMode.AUTO THEN
+	G_MachineControl.sMachineStatus := 'Auto Mode';
+ELSIF G_MachineControl.stMachineOperateMode.MANUAL THEN
+	G_MachineControl.sMachineStatus := 'Manual Mode';
+END_IF
+
+IF G_MachineControl.stMachineCurrentMode.AUTO_RUNNING THEN
+	G_MachineControl.sMachineCurrentStatus := 'Machine Running';
+ELSIF G_MachineControl.stMachineCurrentMode.STOP THEN
+	G_MachineControl.sMachineCurrentStatus := 'Machine Stopped';
+ELSIF G_MachineControl.stMachineCurrentMode.INITIALIZE THEN
+	G_MachineControl.sMachineCurrentStatus := 'Machine Initialize';	
+ELSIF G_MachineControl.stMachineCurrentMode.ERROR_MODE THEN
+	G_MachineControl.sMachineCurrentStatus := 'Machine Error';
+ELSE
+	G_MachineControl.sMachineCurrentStatus := '';
+END_IF
+
+IF G_MachineControl.stMachineOperateMode.DRYRUN THEN
+	G_Robot.RobotKukaCmd.bRobotDryRun := TRUE;
+ELSE
+	G_Robot.RobotKukaCmd.bRobotDryRun := FALSE;
+END_IF
+
+Mapping_EIP();
+Mapping_IO();
+ErrorHandle();
+
+ST00_ChangeRecipe();
+ST00_Cylinder();
+ST00_Sequence();
+
+ST10_BarcodeScanner();
+ST10_Sequence();
+
+ST20_RobotManualControl();
+ST20_RobotSequence();
+ST20_BarcodeScanner();
+ST20_TraySequence();
+ST20_ChangeRecipe();
+ST20_Home();
+ST20_Sequence();]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="952" Count="6" />
+      <LineId Id="1088" Count="1" />
+      <LineId Id="1045" Count="0" />
+      <LineId Id="1041" Count="0" />
+      <LineId Id="959" Count="36" />
+      <LineId Id="1048" Count="0" />
+      <LineId Id="1051" Count="1" />
+      <LineId Id="1055" Count="11" />
+      <LineId Id="1102" Count="1" />
+      <LineId Id="1073" Count="2" />
+      <LineId Id="1049" Count="0" />
+      <LineId Id="996" Count="17" />
+      <LineId Id="1117" Count="0" />
+      <LineId Id="1116" Count="0" />
+      <LineId Id="1118" Count="0" />
+      <LineId Id="1120" Count="1" />
+      <LineId Id="1119" Count="0" />
+      <LineId Id="1014" Count="8" />
+      <LineId Id="1032" Count="0" />
+      <LineId Id="1024" Count="3" />
+      <LineId Id="1031" Count="0" />
+      <LineId Id="1030" Count="0" />
+      <LineId Id="1028" Count="1" />
+      <LineId Id="81" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

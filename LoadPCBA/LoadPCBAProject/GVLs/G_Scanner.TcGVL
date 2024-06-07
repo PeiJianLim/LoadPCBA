@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Scanner" Id="{36bfca21-4f88-482f-a087-52dab6377d49}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	//Scanner to PLC
+	//Load Tray Scanner
+	In_Signal_Tray			: ST_BarcodeScanner;
+	Out_Signal_Tray			: ST_BarcodeScanner;
+	
+	
+	//Load Tray Scanner
+	In_Signal_Conveyor		: ST_BarcodeScanner;
+	Out_Signal_Conveyor		: ST_BarcodeScanner;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST20_BarcodeScanner" Id="{cfe2fab7-031b-4cb3-b961-9ca18abffea3}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST20_BarcodeScanner
+VAR
+	fbCognexBarcodeScanner: FB_CognexBarcodeScanner;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbCognexBarcodeScanner(
+	In_bManualMode:= G_MachineControl.stMachineOperateMode.MANUAL,
+	In_bAutoMode:= G_MachineControl.stMachineOperateMode.AUTO OR G_MachineControl.stMachineOperateMode.DRYRUN,
+	In_timeScanTimer:= T#10S, 
+	In_iResultByte:= 20, 
+	In_ioDeviceFault := G_Scanner.In_Signal_Tray.In_GeneralFault,
+	In_ioTriggerReady:= G_Scanner.In_Signal_Tray.In_TriggerReady, 
+	In_ioTriggerAck:= G_Scanner.In_Signal_Tray.In_TriggerAck, 
+	In_ioAcquiring:= G_Scanner.In_Signal_Tray.In_Acquiring, 
+	In_ioArrayData:= G_Scanner.In_Signal_Tray.In_ResultData, 
+	Out_bDeviceError=> G_Error.E20_BarcodeScannerDeviceError,
+	Out_bErrScanTimeOut=> G_Error.E20_BarcodeTimeout, 
+	Out_ioTriggerEnable=> G_Scanner.Out_Signal_Tray.Out_TriggerEnable, 
+	Out_ioTrigger=> G_Scanner.Out_Signal_Tray.Out_Trigger, 
+	Out_bEnableReady=> G_Manual.M20_bTriggerScannerEnableReady,
+	Out_bEnableReady=> G_Auto.A20_bTriggerScannerEnableReady,
+	Out_bTriggerDone=> G_Manual.M20_bTriggerScannerDone,
+	Out_bTriggerDone=> G_Auto.A20_bTriggerScannerDone,
+	Out_sAutoBarcode=> G_Auto.A20_sScannerBarcode, 
+	Out_sManualBarcode=> G_Manual.M20_sScannerBarcode, 
+	Out_GetBarcodeDone=> G_Auto.A20_bScannerResultDone,
+	Out_GetBarcodeDone=> G_Manual.M20_bScannerResultDone, 
+	InOut_bAutoTriggerEnable:= G_Auto.A20_bTriggerScannerEnable, 
+	InOut_bManualTriggerEnable:= G_Manual.M20_bTriggerScannerEnable, 
+	InOut_bAutoTrigger:= G_Auto.A20_bTriggerScanner,
+	InOut_bManualTrigger:= G_Manual.M20_bTriggerScanner);
+	]]></ST>
+    </Implementation>
+    <LineIds Name="ST20_BarcodeScanner">
+      <LineId Id="97" Count="25" />
+      <LineId Id="53" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

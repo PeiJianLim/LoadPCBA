@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST00_ChangeRecipe" Id="{fb9028b9-dede-4a2a-8dbe-fcfb9953b31e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST00_ChangeRecipe
+VAR
+	iStep : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="ST00_ChangeRecipe">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

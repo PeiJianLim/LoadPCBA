@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Mapping_IO" Id="{59b03e35-a5ac-47fe-bb36-b0cb5101e777}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Mapping_IO
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+G_IO.I_StartPushButton 				:= DeviceMapping.Input00_00;
+G_IO.I_ResetPushButton 				:= DeviceMapping.Input00_01;
+G_IO.I_StopPushButton 				:= DeviceMapping.Input00_02;
+
+
+
+
+
+
+DeviceMapping.Output00_00 := G_IO.O_StartPushButton;
+DeviceMapping.Output00_01 := G_IO.O_ResetPushButton;
+DeviceMapping.Output00_02 := G_IO.O_StopPushButton;]]></ST>
+    </Implementation>
+    <LineIds Name="Mapping_IO">
+      <LineId Id="13" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="19" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="24" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

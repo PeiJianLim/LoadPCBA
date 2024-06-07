@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Values" Id="{a911d184-719d-41d6-b181-075ea50cf64b}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+//===================================
+//ST00 General 
+//===================================
+	VA_sProductName					: STRING;
+	VA_iTotalReject					: INT;
+	VA_iTotalPass					: INT;
+	VA_iTotalInput					: INT;	
+	VA_iTotalOutput					: INT;
+//===================================
+//ST00 Conveyor 
+//===================================
+	VA00_rConveyorWidth				: REAL;
+
+//===================================
+//ST20 RobotScara
+//===================================
+	VA20_byteRobotProgramID			: BYTE;	
+	VA20_stTrayPosition				: ST_VisionRecipe;
+	VA20_rTrayZaxisPick				: REAL;
+	VA20_stPalletPosition			: ST_VisionRecipe;
+	VA20_rPalletZaxisPlace			: REAL;
+	VA20_sDatumVisionResultStatus	: STRING;
+	VA20_stDatumVisionResultPos		: ST_Position;
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

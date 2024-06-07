@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST10_Sequence" Id="{780c3397-842c-4e1e-a8b8-d78d9757ca88}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST10_Sequence
+VAR
+	arrStepStatus : ARRAY [1..100] OF STRING;
+	arrStepUsedTime	: ARRAY [1..100] OF TIME;
+	tonStepTimer : TON;
+	iStep : INT;
+	iMatching: INT;
+	bStart: BOOL;
+	Reset_RTrig: R_TRIG;
+	sBarcode: STRING;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[tonStepTimer();
+
+bStart := (G_MachineControl.stMachineCurrentMode.AUTO_RUNNING OR
+				G_MachineControl.stMachineCurrentMode.DRYRUN_RUNNING);
+				
+IF NOT G_MachineControl.arrstStationControl[1].bError THEN
+	CASE iStep OF
+			
+		0://Ready
+			IF bStart AND NOT G_MachineControl.arrstStationControl[1].bByPassStation
+				AND NOT G_MachineControl.arrstStationControl[1].bJobDone THEN
+				arrStepStatus[1] := 'Step 1: Trigger Read Barcode';
+				tonStepTimer(IN:=TRUE, PT:=T#999999S);
+				G_Auto.A10_sScannerBarcode := '';
+				G_Auto.A10_bTriggerScanner := TRUE;
+				iStep := 10;
+			ELSIF bStart AND G_MachineControl.arrstStationControl[1].bByPassStation AND NOT G_MachineControl.arrstStationControl[1].bJobDone  THEN
+				iStep := 999;
+			END_IF
+			
+		10://Waiting scanner ack
+			IF NOT G_Auto.A10_bScannerResultDone THEN
+				iStep := 20;
+			END_IF
+			
+		20://Waiting scanner result done
+			IF G_Auto.A10_bScannerResultDone THEN
+				G_Auto.A10_bTriggerScanner := FALSE;
+				arrStepUsedTime[1] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				sBarcode := G_Auto.A10_sScannerBarcode;
+				iStep := 999;
+			ELSIF G_Error.E10_BarcodeTimeout THEN
+				G_Error.E10_BarcodeTimeout := FALSE;
+				arrStepUsedTime[1] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				arrStepStatus[2] := 'Step 2: Trigger Check at MES';
+				arrStepUsedTime[2] := tonStepTimer.ET;
+				iStep := 999;
+			END_IF
+			
+		999://Job Done
+			G_MachineControl.arrstStationControl[1].bJobDone := TRUE;
+			iStep := 0;	
+			
+	END_CASE
+	
+ELSIF G_MachineControl.arrstStationControl[1].bError THEN
+	
+	//When error waiting reset
+	Reset_RTrig(CLK := G_MachineControl.bMachineReset);
+	IF Reset_RTrig.Q THEN
+		G_Error.E10_BarcodeScannerDeviceError := FALSE;	
+	    G_Error.E10_BarcodeTimeout := FALSE;					
+	END_IF
+
+END_IF
+
+FOR iMatching := 1 TO 100 DO
+	G_MachineControl.arrsST10StepStatus[iMatching] := arrStepStatus[iMatching];
+	G_MachineControl.arrtimeST10StepTime[iMatching] := arrStepUsedTime[iMatching];
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="ST10_Sequence">
+      <LineId Id="76" Count="0" />
+      <LineId Id="149" Count="1" />
+      <LineId Id="148" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="78" Count="3" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="82" Count="1" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="84" Count="1" />
+      <LineId Id="118" Count="1" />
+      <LineId Id="86" Count="7" />
+      <LineId Id="251" Count="4" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="171" Count="1" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="192" Count="0" />
+      <LineId Id="194" Count="3" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="190" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="105" Count="2" />
+      <LineId Id="46" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

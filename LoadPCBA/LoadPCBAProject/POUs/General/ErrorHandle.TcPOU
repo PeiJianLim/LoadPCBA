@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ErrorHandle" Id="{d71c9bb9-d22a-4077-a2da-8e75d5d32ee4}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ErrorHandle
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//===================================
+//Machine Control
+//===================================
+G_MachineControl.bMainError := %MD1000 > 0;
+
+//===================================
+//Warning MD1005
+//===================================
+
+//===================================
+//ST00 Conveyor
+//===================================	
+
+G_MachineControl.arrstStationControl[0].bError := %MD1008 > 0 OR %MD1009 > 0;
+
+//===================================
+//ST10 Barcode Scanner 
+//===================================
+
+G_MachineControl.arrstStationControl[1].bError := %MD1010 > 0;
+
+//===================================
+//ST20 Robot Pick & Place
+//===================================
+
+G_MachineControl.arrstStationControl[2].bError := %MD1020 > 0 OR %MD1021 > 0;
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="ErrorHandle">
+      <LineId Id="27" Count="28" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

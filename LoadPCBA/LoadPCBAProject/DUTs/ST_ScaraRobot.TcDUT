@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_ScaraRobot" Id="{37b3a3e0-0034-44d9-abaf-f688ff7e612b}">
+    <Declaration><![CDATA[TYPE ST_ScaraRobot :
+STRUCT
+	//Robot to PLC
+	bReady				: BOOL; 
+	bRunning		 	: BOOL; 
+	bPaused			 	: BOOL; 
+	bStopped		 	: BOOL; 
+	bError			 	: BOOL; 
+	bSafeguardON	 	: BOOL; 
+	bEstopON		 	: BOOL; 
+	bSerror			 	: BOOL; 
+	bWarning 		 	: BOOL; 
+	bEnabled		 	: BOOL; 
+	bAcknowledged	 	: BOOL; 
+	bHomeDone 			: BOOL;	
+	bStandbyPositionDone: BOOL; 
+	bClearMessageDone	: BOOL; 
+
+	//PLC to Robot              
+	bStop			 	: BOOL; 
+	bStart			 	: BOOL; 
+	bPause			 	: BOOL; 
+	bContinue		 	: BOOL; 
+	bReset 			 	: BOOL; 
+	bEnable 		 	: BOOL; 
+	bAppID0 		 	: BOOL; 
+	bAppID1 		 	: BOOL; 
+	bAppID2 		 	: BOOL; 
+	bAcknowledgeMsg	 	: BOOL; 
+	bHome 				: BOOL; 
+	bStandbyPosition 	: BOOL; 
+	bClearMessage		: BOOL; 
+      
+	wOutLowerX			: WORD; //byte 5 and 6
+	wOutUpperX			: WORD; //byte 7 and 8
+	wOutLowerY			: WORD; //byte 9 and 10
+	wOutUpperY			: WORD; //byte 11 and 12
+	wOutLowerZ			: WORD; //byte 13 and 14
+	wOutUpperZ			: WORD; //byte 15 and 16
+	wOutLowerA			: WORD; //byte 17 and 18
+	wOutUpperA			: WORD; //byte 19 and 20
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

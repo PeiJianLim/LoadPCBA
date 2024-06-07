@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="F_BytesToWord" Id="{dc5a728b-f81d-410f-8a7c-002f4dc19f5e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_BytesToWord : WORD // CONCAT two relative Bytes data into assending Order which Upper is bit 5-8 and Lower is bits 1-4
+VAR_INPUT
+	IN_UpperByte : BYTE; //The Upper 8 Bits data (1st Byte) from Full 16 Bits Data(WORD)
+	IN_LowerByte : BYTE; //The Lower 8 Bits data (2st Byte) from Full 16 Bits Data(WORD)
+END_VAR
+VAR
+	d_Input : WORD;
+	i_Input : WORD;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// IN_UpperByte is Byte data from KUKA EIP
+//d_Input = WORD
+//INSERT WORD INTO DWORD
+// SHL Shift Left 16 bit of data + Lower 16 bit of data 
+// Convert DWORD to REAL 
+
+d_Input :=  IN_UpperByte;
+d_Input := SHL(d_Input,8) + IN_LowerByte;
+F_BytesToWord:= TO_WORD(d_Input);]]></ST>
+    </Implementation>
+    <LineIds Name="F_BytesToWord">
+      <LineId Id="39" Count="7" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,646 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST20_Sequence" Id="{4fab1dc7-42a0-4727-8a23-7a56f3a3b28c}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST20_Sequence
+VAR
+	arrStepStatus : ARRAY [1..100] OF STRING;
+	arrStepUsedTime	: ARRAY [1..100] OF TIME;
+	tonStepTimer : TON;
+	iStep : int;
+	bStart: BOOL;
+	iMatching: INT;
+	tonTimeOut : TON;
+	tonDelay : TON;
+	tTimeOut : TIME;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[tonStepTimer();
+
+bStart := (G_MachineControl.stMachineCurrentMode.AUTO_RUNNING OR
+			G_MachineControl.stMachineCurrentMode.DRYRUN_RUNNING);
+
+IF NOT G_MachineControl.arrstStationControl[2].bError THEN
+				
+	CASE iStep OF
+		
+		0: //Ready
+			IF bStart AND NOT G_MachineControl.arrstStationControl[2].bByPassStation AND G_Auto.A20_bPalletReady AND G_Auto.A10_sScannerBarcode <> '' AND NOT G_MachineControl.arrstStationControl[2].bJobDone THEN
+				G_Auto.A20_bRobotAtStandbyPallet := FALSE;
+				iStep := 10;
+			ELSIF bStart AND NOT G_MachineControl.arrstStationControl[2].bByPassStation AND NOT G_Auto.A20_bPalletReady AND NOT G_Auto.A20_bRobotAtStandbyPallet THEN
+				iStep := 1000; //go to standby at pallet
+			ELSIF bStart AND G_MachineControl.arrstStationControl[2].bByPassStation OR (G_Auto.A20_bPalletReady AND G_Auto.A10_sScannerBarcode <> '') AND NOT G_MachineControl.arrstStationControl[2].bJobDone THEN
+				iStep := 999;
+			END_IF
+			
+		10: //Robot move to pallet fiducial 1
+			arrStepStatus[1] := 'Step 1: Robot go to pallet fiducial 1';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotPalletFiducial1 := TRUE;
+			iStep := 20; 
+			
+		20:
+			IF NOT G_Robot.RobotKukaCmd.bRobotPalletFiducial1Done THEN
+				iStep := 30;
+			END_IF
+			
+		30://Robot move pallet fiducial 1 done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotPalletFiducial1Done THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotPalletFiducial1 := FALSE;
+				arrStepUsedTime[1] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 40;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotPalletFiducial1 := FALSE;
+				G_Error.E20_RobotTimeOutFailToPalletFiducial_1 := TRUE;
+				iStep := 10;
+			END_IF
+			
+		40: //Vision capture pallet fiducial 1
+			arrStepStatus[2] := 'Step 2: Trigger Vision Capture';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			IF NOT G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Vision.V20_bRespone := FALSE;
+				G_Vision.V20_sSendCmd := 'TRG,0';
+				G_Vision.V20_bTrigger := TRUE;		
+			END_IF
+			iStep := 50;
+			
+		
+		50: //Waiting vision capture done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Vision.V20_bRespone OR G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;
+				arrStepUsedTime[2] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 60;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;	
+				G_Error.E20_VisionTimeOutInspection	:= TRUE;
+				iStep := 40;
+			END_IF
+			
+		60:
+			G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stPalletPosition.stFiducialDistance2Value.Xpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stPalletPosition.stFiducialDistance2Value.Ypos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Z := 0; //G_Values.VA20_stPalletPosition.stFiducialDistance2Value.Zpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stPalletPosition.stFiducialDistance2Value.Apos;
+			iStep := 70;
+			
+		70: //Robot move to pallet fiducial 2
+			arrStepStatus[3] := 'Step 3: Robot go to pallet fiducial 2';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotPalletFiducial2 := TRUE;
+			iStep := 80;
+			
+		80:
+			IF NOT G_Robot.RobotKukaCmd.bRobotPalletFiducial2Done THEN
+				iStep := 90;
+			END_IF
+			
+		90: //Robot move pallet fiducial 2 done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotPalletFiducial2Done THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotPalletFiducial2 := FALSE;
+				arrStepUsedTime[3] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 100;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotPalletFiducial2 := FALSE;
+				G_Error.E20_RobotTimeOutFailToPalletFiducial_2 := TRUE;
+				iStep := 60;
+			END_IF
+			
+		100: //Vision capture pallet fiducial 2
+			arrStepStatus[4] := 'Step 4: Trigger Vision Capture';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			IF NOT G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Vision.V20_bRespone := FALSE;
+				G_Vision.V20_sSendCmd := 'TRG,1';
+				G_Vision.V20_bTrigger := TRUE;	
+			END_IF			
+			iStep := 110;
+		
+		110: //Waiting vision capture done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Vision.V20_bRespone OR G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;
+				arrStepUsedTime[4] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 120;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;	
+				G_Error.E20_VisionTimeOutInspection	:= TRUE;
+				iStep := 100;
+			END_IF
+			
+		120: //Waiting Tray Ready
+			arrStepStatus[5] := 'Step 5: Waiting Tray Ready';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			IF bStart AND NOT G_MachineControl.arrstStationControl[2].bByPassStation AND G_Auto.A20_bMESCheckDone AND G_Auto.A20_bMESPass 
+				AND NOT G_MachineControl.arrstStationControl[2].bJobDone AND G_Auto.A20_bTrayReady THEN
+				arrStepUsedTime[5] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 130;	
+			ELSIF bStart AND NOT G_MachineControl.arrstStationControl[2].bByPassStation AND G_Auto.A20_bMESCheckDone AND G_Auto.A20_bMESPass 
+				AND NOT G_MachineControl.arrstStationControl[2].bJobDone AND NOT G_Auto.A20_bTrayReady AND NOT G_Auto.A20_bRobotAtStandbyTray THEN
+				iStep := 2000; //go to standby at tray
+			END_IF
+			
+		130: //Robot move to tray fiducial 1
+			arrStepStatus[6] := 'Step 6: Robot go to tray fiducial 1';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Auto.A20_bRobotAtStandbyTray := FALSE;
+			G_Robot.RobotKukaCmd.bRobotTrayFiducial1 := TRUE;
+			iStep := 140; 
+			
+		140:
+			IF NOT G_Robot.RobotKukaCmd.bRobotTrayFiducial1Done THEN
+				iStep := 150;
+			END_IF
+			
+		150://Robot move tray fiducial 1 done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotTrayFiducial1Done THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotTrayFiducial1 := FALSE;
+				arrStepUsedTime[6] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 160;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotTrayFiducial1 := FALSE;
+				G_Error.E20_RobotTimeOutFailToTrayFiducial_1 := TRUE;
+				iStep := 120;
+			END_IF
+			
+		160: //Vision capture tray fiducial 1
+			arrStepStatus[7] := 'Step 7: Trigger Vision Capture';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			IF NOT G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Vision.V20_bRespone := FALSE;
+				G_Vision.V20_sSendCmd := 'TRG,2';  
+				G_Vision.V20_bTrigger := TRUE;	
+			END_IF			
+			iStep := 170;
+		
+		170: //Waiting vision capture done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Vision.V20_bRespone OR G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;
+				arrStepUsedTime[7] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 180;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;	
+				G_Error.E20_VisionTimeOutInspection	:= TRUE;
+				iStep := 160;
+			END_IF
+			
+		180:
+			G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stTrayPosition.stFiducialDistance2Value.Xpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stTrayPosition.stFiducialDistance2Value.Ypos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Z := 0; //G_Values.VA20_stTrayPosition.stFiducialDistance2Value.Zpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stTrayPosition.stFiducialDistance2Value.Apos;
+			iStep := 190;
+			
+		190: //Robot move to tray fiducial 2
+			arrStepStatus[8] := 'Step 8: Robot go to tray fiducial 2';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotTrayFiducial2 := TRUE;
+			iStep := 200; 
+			
+		200:
+			IF NOT G_Robot.RobotKukaCmd.bRobotTrayFiducial2Done THEN
+				iStep := 210;
+			END_IF
+			
+		210://Robot move tray fiducial 2 done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotTrayFiducial2Done THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotTrayFiducial2 := FALSE;
+				arrStepUsedTime[8] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 220;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotTrayFiducial2 := FALSE;
+				G_Error.E20_RobotTimeOutFailToTrayFiducial_2 := TRUE;
+				iStep := 180;
+			END_IF
+			
+		220: //Vision capture tray fiducial 2
+			arrStepStatus[9] := 'Step 9: Trigger Vision Capture';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			IF NOT G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Vision.V20_bRespone := FALSE;
+				G_Vision.V20_sSendCmd := 'TRG,3'; 
+				G_Vision.V20_bTrigger := TRUE;	
+			END_IF				
+			iStep := 230;
+		
+		230: //Waiting vision capture done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Vision.V20_bRespone OR G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;
+				arrStepUsedTime[9] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 240;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Vision.V20_bTrigger := FALSE;	
+				G_Error.E20_VisionTimeOutInspection	:= TRUE;
+				iStep := 220;
+			END_IF
+			
+		240:
+			IF NOT G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Robot.RobotKukaCmd.rRobotPlace_X := G_Vision.V20_stTrayPosition.stPocket.Xpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Vision.V20_stTrayPosition.stPocket.Ypos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rTrayZaxisPick; //G_Vision.V20_stTrayPosition.stPocket.Zpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_A := G_Vision.V20_stTrayPosition.stPocket.Apos;
+			ELSIF G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stTrayPosition.stPocket.Xpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stTrayPosition.stPocket.Ypos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rTrayZaxisPick; //G_Values.VA20_stTrayPosition.stPocket.Zpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stTrayPosition.stPocket.Apos;
+			END_IF
+			iStep := 250;
+			
+		250: //Robot move to pick PCBA
+			arrStepStatus[10] := 'Step 10: Robot go to pick PCBA';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotPickPCBA := TRUE;
+			iStep := 260; 
+			
+		260:
+			IF NOT G_Robot.RobotKukaCmd.bRobotPickPCBADone THEN
+				iStep := 270;
+			END_IF
+			
+		270://Robot move pick PCBA
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotPickPCBADone THEN
+				tonTimeOut(IN:= FALSE);
+				G_Auto.A20_bTrayFinish := TRUE;
+				G_Robot.RobotKukaCmd.bRobotPickPCBA := FALSE;
+				arrStepUsedTime[10] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 280;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotPickPCBA := FALSE;
+				G_Error.E20_RObotTimeOutFailToPickPCBA := TRUE;
+				iStep := 240;
+			END_IF
+			
+		280:
+			IF NOT G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Robot.RobotKukaCmd.rRobotPlace_X := G_Vision.V20_stPalletPosition.stPocket.Xpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Vision.V20_stPalletPosition.stPocket.Ypos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rTrayZaxisPick; //G_Vision.V20_stPalletPosition.stPocket.Zpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_A := G_Vision.V20_stPalletPosition.stPocket.Apos;
+			ELSIF G_MachineControl.stMachineOperateMode.DRYRUN THEN
+				G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stPalletPosition.stPocket.Xpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stPalletPosition.stPocket.Ypos;
+				G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rTrayZaxisPick; //G_Values.VA20_stPalletPosition.stPocket.Zpos;
+				G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stPalletPosition.stPocket.Apos;
+			END_IF
+			iStep := 290;
+			
+		290: //Robot place pcba
+			arrStepStatus[11] := 'Step 11: Robot go to place PCBA';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotPlacePCBA := TRUE;
+			iStep := 300;
+			
+		300:
+			IF NOT G_Robot.RobotKukaCmd.bRobotPlacePCBADone THEN
+				iStep := 310;
+			END_IF
+			
+		310: //Robot place pcba done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotPlacePCBADone THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotPlacePCBA := FALSE;
+				arrStepUsedTime[11] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 320;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotPlacePCBA := FALSE;
+				G_Error.E20_RobotTimeOutFailToPlacePCBA := TRUE;
+				iStep := 280;
+			END_IF
+			
+		320: //Robot go standby pallet
+			arrStepStatus[12] := 'Step 12: Robot go to standby';
+			tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := TRUE;
+			iStep := 330;
+			
+		330:
+			IF NOT G_Robot.RobotKukaCmd.bRobotStandbyAtPalletDone THEN
+				iStep := 340;
+			END_IF
+			
+		340: //Robot go standby pallet done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotStandbyAtPalletDone THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := FALSE;
+				arrStepUsedTime[12] := tonStepTimer.ET;
+				tonStepTimer(IN:=FALSE);
+				iStep := 999;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := FALSE;
+				G_Error.E20_RobotTimeOutFailToStandbyPallet := TRUE;
+				iStep := 280;
+			END_IF		
+			
+		999://Job Done
+			G_MachineControl.arrstStationControl[2].bJobDone := TRUE;
+			iStep := 0;	
+			
+		1000: //Robot go to standby at pallet
+			//arrStepStatus[7] := 'Step 7: Robot go to place PCBA';
+			//tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := TRUE;
+			iStep := 1010;
+			
+		1010:
+			IF NOT G_Robot.RobotKukaCmd.bRobotStandbyAtPalletDone THEN
+				iStep := 1020;
+			END_IF
+			
+		1020: //Robot go to standby pallet done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotStandbyAtPalletDone THEN
+				G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := FALSE;
+				G_Auto.A20_bRobotAtStandbyPallet := TRUE;
+				iStep := 0;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := FALSE;
+				G_Error.E20_RobotTimeOutFailToStandbyPallet := TRUE;
+				iStep := 2000;
+			END_IF
+			
+		2000: //Robot go to standby at tray
+			//arrStepStatus[7] := 'Step 7: Robot go to place PCBA';
+			//tonStepTimer(IN:=TRUE, PT:=T#999999S);
+			G_Robot.RobotKukaCmd.bRobotStandbyAtTray := TRUE;
+			iStep := 2010;
+			
+		2010:
+			IF NOT G_Robot.RobotKukaCmd.bRobotStandbyAtTrayDone THEN
+				iStep := 2020;
+			END_IF
+			
+		2020: //Robot go to standby tray done
+			tonTimeOut(IN:= TRUE,PT:= tTimeOut);
+			IF G_Robot.RobotKukaCmd.bRobotStandbyAtTrayDone THEN
+				G_Robot.RobotKukaCmd.bRobotStandbyAtTray := FALSE;
+				G_Auto.A20_bRobotAtStandbyTray := TRUE;
+				iStep := 110;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:= FALSE);
+				G_Robot.RobotKukaCmd.bRobotStandbyAtTray := FALSE;
+				G_Error.E20_RobotTimeOutFailToStandbyTray := TRUE;
+				iStep := 2000;
+			END_IF
+			
+		3000: //Recovery For Failed Overpress
+			G_Robot.RobotKukaStandard.bStop := TRUE;	
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStep := 3010;
+			END_IF
+			
+		3010:
+			G_Robot.RobotKukaStandard.bStop	:= FALSE;
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStep := 3020;
+			END_IF
+			
+		3020: //Robot start
+			G_Robot.RobotKukaStandard.bStart := TRUE;
+			iStep := 3030;
+			
+		3030: //Wait start
+			tonTimeOut(IN:= TRUE, PT:= T#50S);
+			IF G_Robot.RobotKukaStandard.bRunning THEN
+				tonTimeOut(IN:=FALSE);
+				iStep := 3040;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bStart := FALSE;
+				G_Error.E20_RobotFailStart := TRUE;	
+				iStep := 3020;
+			END_IF
+			
+		3040: //Robot StandbyPosition
+			G_Robot.RobotKukaStandard.bHome := TRUE;
+			iStep := 3050;
+			
+		3050:
+			IF NOT G_Robot.RobotKukaStandard.bHomeDone THEN
+				iStep := 3060;
+			END_IF
+ 
+		3060: //Wait home
+			tonTimeOut(IN:= TRUE, PT:= T#500S);
+			IF G_Robot.RobotKukaStandard.bHomeDone THEN
+				G_Robot.RobotKukaStandard.bHome := FALSE;
+				G_Error.E20_RobotFailPlaceOverpress := TRUE;
+				tonTimeOut(IN:=FALSE);
+				iStep := 999;	
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bHome := FALSE;
+				G_Error.E20_RobotFailHome := TRUE;
+				iStep := 3040;
+			END_IF
+			
+	END_CASE
+
+END_IF
+
+FOR iMatching := 1 TO 100 DO
+	G_MachineControl.arrsST20StepStatus[iMatching] := arrStepStatus[iMatching];
+	G_MachineControl.arrtimeST20StepTime[iMatching] := arrStepUsedTime[iMatching];
+END_FOR]]></ST>
+    </Implementation>
+    <LineIds Name="ST20_Sequence">
+      <LineId Id="197" Count="0" />
+      <LineId Id="339" Count="1" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="375" Count="0" />
+      <LineId Id="377" Count="0" />
+      <LineId Id="376" Count="0" />
+      <LineId Id="199" Count="3" />
+      <LineId Id="344" Count="0" />
+      <LineId Id="836" Count="0" />
+      <LineId Id="809" Count="1" />
+      <LineId Id="342" Count="1" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="459" Count="0" />
+      <LineId Id="463" Count="3" />
+      <LineId Id="460" Count="0" />
+      <LineId Id="462" Count="0" />
+      <LineId Id="461" Count="0" />
+      <LineId Id="468" Count="1" />
+      <LineId Id="467" Count="0" />
+      <LineId Id="470" Count="0" />
+      <LineId Id="472" Count="0" />
+      <LineId Id="478" Count="0" />
+      <LineId Id="473" Count="0" />
+      <LineId Id="483" Count="0" />
+      <LineId Id="474" Count="3" />
+      <LineId Id="479" Count="1" />
+      <LineId Id="484" Count="2" />
+      <LineId Id="471" Count="0" />
+      <LineId Id="487" Count="0" />
+      <LineId Id="490" Count="2" />
+      <LineId Id="928" Count="0" />
+      <LineId Id="931" Count="2" />
+      <LineId Id="930" Count="0" />
+      <LineId Id="936" Count="0" />
+      <LineId Id="488" Count="1" />
+      <LineId Id="498" Count="0" />
+      <LineId Id="505" Count="0" />
+      <LineId Id="499" Count="0" />
+      <LineId Id="574" Count="0" />
+      <LineId Id="500" Count="3" />
+      <LineId Id="506" Count="4" />
+      <LineId Id="496" Count="0" />
+      <LineId Id="948" Count="1" />
+      <LineId Id="952" Count="2" />
+      <LineId Id="951" Count="0" />
+      <LineId Id="955" Count="0" />
+      <LineId Id="511" Count="0" />
+      <LineId Id="514" Count="3" />
+      <LineId Id="512" Count="0" />
+      <LineId Id="518" Count="1" />
+      <LineId Id="521" Count="1" />
+      <LineId Id="520" Count="0" />
+      <LineId Id="523" Count="0" />
+      <LineId Id="526" Count="0" />
+      <LineId Id="532" Count="0" />
+      <LineId Id="527" Count="0" />
+      <LineId Id="575" Count="0" />
+      <LineId Id="528" Count="3" />
+      <LineId Id="534" Count="3" />
+      <LineId Id="533" Count="0" />
+      <LineId Id="524" Count="0" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="554" Count="2" />
+      <LineId Id="937" Count="0" />
+      <LineId Id="557" Count="2" />
+      <LineId Id="939" Count="0" />
+      <LineId Id="560" Count="4" />
+      <LineId Id="576" Count="0" />
+      <LineId Id="565" Count="8" />
+      <LineId Id="552" Count="1" />
+      <LineId Id="539" Count="0" />
+      <LineId Id="805" Count="1" />
+      <LineId Id="541" Count="1" />
+      <LineId Id="807" Count="1" />
+      <LineId Id="544" Count="0" />
+      <LineId Id="720" Count="1" />
+      <LineId Id="718" Count="0" />
+      <LineId Id="545" Count="0" />
+      <LineId Id="548" Count="0" />
+      <LineId Id="578" Count="2" />
+      <LineId Id="775" Count="0" />
+      <LineId Id="581" Count="20" />
+      <LineId Id="549" Count="0" />
+      <LineId Id="602" Count="0" />
+      <LineId Id="604" Count="2" />
+      <LineId Id="940" Count="0" />
+      <LineId Id="607" Count="2" />
+      <LineId Id="943" Count="0" />
+      <LineId Id="610" Count="14" />
+      <LineId Id="603" Count="0" />
+      <LineId Id="956" Count="1" />
+      <LineId Id="959" Count="3" />
+      <LineId Id="958" Count="0" />
+      <LineId Id="628" Count="0" />
+      <LineId Id="631" Count="28" />
+      <LineId Id="944" Count="0" />
+      <LineId Id="660" Count="2" />
+      <LineId Id="946" Count="0" />
+      <LineId Id="663" Count="14" />
+      <LineId Id="629" Count="0" />
+      <LineId Id="963" Count="1" />
+      <LineId Id="969" Count="0" />
+      <LineId Id="974" Count="3" />
+      <LineId Id="972" Count="0" />
+      <LineId Id="978" Count="2" />
+      <LineId Id="973" Count="0" />
+      <LineId Id="971" Count="0" />
+      <LineId Id="981" Count="0" />
+      <LineId Id="630" Count="0" />
+      <LineId Id="679" Count="14" />
+      <LineId Id="776" Count="0" />
+      <LineId Id="694" Count="8" />
+      <LineId Id="625" Count="0" />
+      <LineId Id="982" Count="1" />
+      <LineId Id="985" Count="9" />
+      <LineId Id="984" Count="0" />
+      <LineId Id="995" Count="0" />
+      <LineId Id="292" Count="12" />
+      <LineId Id="704" Count="11" />
+      <LineId Id="703" Count="0" />
+      <LineId Id="777" Count="0" />
+      <LineId Id="781" Count="23" />
+      <LineId Id="778" Count="0" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="348" Count="1" />
+      <LineId Id="346" Count="0" />
+      <LineId Id="811" Count="0" />
+      <LineId Id="813" Count="21" />
+      <LineId Id="812" Count="0" />
+      <LineId Id="838" Count="0" />
+      <LineId Id="840" Count="21" />
+      <LineId Id="839" Count="0" />
+      <LineId Id="873" Count="0" />
+      <LineId Id="875" Count="6" />
+      <LineId Id="996" Count="0" />
+      <LineId Id="882" Count="6" />
+      <LineId Id="924" Count="0" />
+      <LineId Id="889" Count="2" />
+      <LineId Id="925" Count="0" />
+      <LineId Id="892" Count="10" />
+      <LineId Id="926" Count="0" />
+      <LineId Id="903" Count="2" />
+      <LineId Id="927" Count="0" />
+      <LineId Id="906" Count="16" />
+      <LineId Id="874" Count="0" />
+      <LineId Id="347" Count="0" />
+      <LineId Id="313" Count="0" />
+      <LineId Id="378" Count="0" />
+      <LineId Id="314" Count="4" />
+      <LineId Id="57" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

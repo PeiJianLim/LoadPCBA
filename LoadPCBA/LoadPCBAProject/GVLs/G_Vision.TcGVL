@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Vision" Id="{64afeb8d-bc4d-42e9-922e-073e84a14c64}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	V20_sSendCmd				: STRING;
+	V20_bTrigger				: BOOL;
+	V20_bRespone				: BOOL;
+	
+	V20_stTrayPosition			: ST_VisionRecipe; //HMI to PLC to Vision
+	V20_stResultTrayPosition	: ST_Position; //Vision to PLC to Robot
+	
+	V20_stPalletPosition		: ST_VisionRecipe; //HMI to PLC to Vision
+	V20_stResultPalletPosition	: ST_Position; //Vision to PLC to Robot
+	
+	V20_sDatumVisionResultStatus	: STRING;
+	V20_stDatumVisionResultPos		: ST_Position;
+END_VAR
+
+]]></Declaration>
+  </GVL>
+</TcPlcObject>

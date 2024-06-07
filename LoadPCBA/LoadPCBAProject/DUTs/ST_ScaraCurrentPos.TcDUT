@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_ScaraCurrentPos" Id="{17dbdd0c-6d56-4f1c-9190-d3467201566d}">
+    <Declaration><![CDATA[TYPE ST_ScaraCurrentPos :
+STRUCT
+	RobotCurrentPos_X : REAL;
+	RobotCurrentPos_Y : REAL;
+	RobotCurrentPos_Z : REAL;
+	RobotCurrentPos_A : REAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

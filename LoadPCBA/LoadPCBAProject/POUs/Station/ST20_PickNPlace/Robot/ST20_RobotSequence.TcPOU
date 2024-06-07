@@ -1,0 +1,412 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST20_RobotSequence" Id="{921f4c1c-0e51-40fa-abea-a4e2a4d11047}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST20_RobotSequence
+VAR
+	bEStopTriggered			: BOOL;
+	iStepActiveRobot		: INT;
+	iStepInitialize			: INT;
+	iStepChangeRobotProgram : INT;
+	tonTimeOut				: TON;
+	tonDelay				: TON;
+	Reset_RTRIG				: R_TRIG;
+	iStepCheckDatum			: INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//timeTimeOut := T#20S;
+
+//===================================
+//Robot Initialize
+//===================================
+
+IF NOT G_MachineControl.arrstStationControl[2].bError THEN
+
+	CASE iStepInitialize OF
+		
+		 0:
+		 	IF G_Auto.A20_bRobotInitialize AND NOT G_MachineControl.stMachineCurrentMode.MANUAL_RUNNING THEN
+				G_Auto.A20_bRobotInitializeDone  := FALSE;
+				iStepInitialize := 10;
+			END_IF
+			
+		10: //Robot Stop
+			G_Robot.RobotKukaStandard.bStop := TRUE;
+			G_Robot.RobotKukaCmd.bRobotTrayFiducial1 := FALSE;
+			G_Robot.RobotKukaCmd.bRobotTrayFiducial2 := FALSE;
+			G_Robot.RobotKukaCmd.bRobotPalletFiducial1 := FALSE;
+			G_Robot.RobotKukaCmd.bRobotPalletFiducial2 := FALSE;
+			G_Robot.RobotKukaCmd.bRobotPickPCBA := FALSE;
+			G_Robot.RobotKukaCmd.bRobotPlacePCBA := FALSE;
+			G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := FALSE;
+			G_Robot.RobotKukaCmd.bRobotStandbyAtTray := FALSE;
+			G_Robot.RobotKukaStandard.bHome := FALSE;
+			G_Robot.RobotKukaStandard.bStandbyPosition := FALSE;
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStepInitialize := 20;
+			END_IF	
+			
+		20:
+			G_Robot.RobotKukaStandard.bStop	:= FALSE;
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStepInitialize := 30;
+			END_IF
+			
+		30:
+			G_Robot.RobotKukaStandard.bEnable	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bEnable THEN
+				iStepInitialize := 40;
+			END_IF
+			
+		40:
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStepInitialize := 50;
+			END_IF
+			
+		50: //Servo On @ Enable
+			G_Robot.RobotKukaStandard.bEnable	:= TRUE;
+			G_Robot.RobotKukaStandard.bStop	:= FALSE; 
+			iStepInitialize := 60;
+			
+		60:
+			tonTimeOut(IN:= TRUE, PT:= T#5S);
+			IF G_Robot.RobotKukaStandard.bEnabled THEN
+				tonTimeOut(IN:= FALSE);
+				iStepInitialize := 70;
+			ELSIF tonTimeOut.Q THEN
+				G_Error.E20_RobotFailServoOn := TRUE;
+				tonTimeOut(IN:= FALSE);
+				iStepInitialize := 50;
+			END_IF
+			
+		70:
+			G_Robot.RobotKukaStandard.bReset	:= TRUE;
+			IF NOT G_Robot.RobotKukaStandard.bStopped THEN
+ 				iStepInitialize := 80;
+			END_IF
+			
+		80:
+			G_Robot.RobotKukaStandard.bStart	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bStart THEN
+ 				iStepInitialize := 90;
+			END_IF
+			
+		90: 
+			G_Robot.RobotKukaStandard.bReset	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bReset THEN
+ 				iStepInitialize := 100;
+			END_IF
+			
+		100: //Robot program
+			G_Robot.RobotKukaStandard.bAppID0 := TRUE;
+			G_Robot.RobotKukaStandard.bAppID1 := FALSE;
+			G_Robot.RobotKukaStandard.bAppID2 := FALSE;
+			iStepChangeRobotProgram := 110;
+			
+		110: 	
+			tonTimeOut(IN:=TRUE, PT:=T#1S);
+			IF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				iStepInitialize := 120;
+			END_IF
+			
+		120: //Robot start
+			G_Robot.RobotKukaStandard.bStart := TRUE;
+			iStepInitialize := 130;
+					
+		130: //Wait start
+			tonTimeOut(IN:= TRUE, PT:= T#50S);
+			IF G_Robot.RobotKukaStandard.bRunning THEN
+				tonTimeOut(IN:=FALSE);
+				iStepInitialize := 140;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bStart := FALSE;
+				G_Error.E20_RobotFailStart := TRUE;
+				G_Error.E20_RobotFailToInitialize := TRUE;	
+				iStepInitialize := 120;
+			END_IF
+			
+		140: //Robot Home
+			G_Robot.RobotKukaStandard.bHome := TRUE;
+			iStepInitialize := 150;
+			
+		150:
+			IF NOT G_Robot.RobotKukaStandard.bHomeDone THEN
+				iStepInitialize := 160;
+			END_IF
+
+		160: //Wait home
+			tonTimeOut(IN:= TRUE, PT:= T#500S);
+			IF G_Robot.RobotKukaStandard.bHomeDone THEN
+				G_Robot.RobotKukaStandard.bHome := FALSE;
+				tonTimeOut(IN:=FALSE);
+				iStepInitialize := 999;	
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bHome := FALSE;
+				G_Error.E20_RobotFailHome := TRUE;
+				G_Error.E20_RobotFailToInitialize := TRUE;	
+				iStepInitialize := 140;
+			END_IF				
+		
+		999: 
+			G_Auto.A20_bRobotInitialize := FALSE;
+			G_Auto.A20_bRobotInitializeDone  := TRUE;
+			iStepInitialize := 0;			
+	END_CASE
+
+ELSE
+	
+	Reset_RTRIG(CLK := G_MachineControl.bMachineReset);
+	IF Reset_RTRIG.Q THEN
+		G_Error.E20_RobotFailHome 			:= FALSE;
+		G_Error.E20_RobotFailStart			:= FALSE;
+		G_Error.E20_RobotFailServoOn		:= FALSE;
+		G_Error.E20_RobotFailToInitialize 	:= FALSE;
+	END_IF
+	
+END_IF
+
+//===================================
+//Robot Recovery
+//===================================
+
+IF G_Error.E_EmgStop OR G_Robot.RobotKukaStandard.bEstopON THEN
+	bEStopTriggered := TRUE;
+END_IF
+
+Reset_RTrig(CLK := G_MachineControl.bMachineReset);
+IF Reset_RTrig.Q AND G_Robot.RobotKukaStandard.bAcknowledged THEN
+	iStepActiveRobot := 10;
+	bEStopTriggered := FALSE;
+	G_Error.E20_RobotFailHome 			:= FALSE;
+	G_Error.E20_RobotFailStart			:= FALSE;
+	G_Error.E20_RobotFailServoOn		:= FALSE;
+	G_Error.E20_RobotFailToInitialize 	:= FALSE;
+END_IF
+
+CASE iStepActiveRobot OF	
+			
+		10:
+			G_Robot.RobotKukaStandard.bEnable	:= FALSE;
+			G_Robot.RobotKukaStandard.bContinue	:= FALSE;
+			G_Robot.RobotKukaStandard.bStart	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bEnable THEN
+				iStepActiveRobot := 20;
+			END_IF
+			
+		20:
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStepActiveRobot := 30;
+			END_IF
+			
+		30: //Servo On @ Enable
+			G_Robot.RobotKukaStandard.bEnable	:= TRUE;
+			G_Robot.RobotKukaStandard.bStop	:= FALSE; 
+			iStepActiveRobot := 40;
+			
+		40:
+			tonTimeOut(IN:= TRUE, PT:= T#5S);
+			IF G_Robot.RobotKukaStandard.bEnabled THEN
+				tonTimeOut(IN:= FALSE);
+				iStepActiveRobot := 50;
+			ELSIF tonTimeOut.Q THEN
+				G_Error.E20_RobotFailServoOn := TRUE;
+				tonTimeOut(IN:= FALSE);
+				iStepActiveRobot := 30;
+			END_IF
+			
+		50:
+		 	IF G_Robot.RobotKukaStandard.bPaused THEN
+				G_Robot.RobotKukaStandard.bContinue	:= TRUE;
+				IF G_Robot.RobotKukaStandard.bRunning THEN
+					iStepActiveRobot := 60;
+				END_IF
+			END_IF
+			
+			IF NOT G_Robot.RobotKukaStandard.bPaused THEN
+				G_Robot.RobotKukaStandard.bStart	:= TRUE;
+				IF G_Robot.RobotKukaStandard.bRunning THEN
+					iStepActiveRobot := 60;
+				END_IF
+			END_IF
+
+			
+		60:
+			G_Robot.RobotKukaStandard.bContinue	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bContinue THEN
+ 				iStepActiveRobot := 0;
+			END_IF
+				
+END_CASE
+
+//===================================
+//Robot Check Datum
+//===================================
+ 
+IF NOT G_MachineControl.arrstStationControl[2].bError THEN
+	CASE iStepCheckDatum OF
+			 0:
+				IF G_Auto.A20_bRobotCheckDatum AND NOT G_MachineControl.stMachineCurrentMode.MANUAL_RUNNING THEN //need to add signal with workspace R1 working or not 
+					G_Auto.A20_bRobotCheckDatumDone := FALSE;
+					iStepCheckDatum := 10;
+				END_IF
+			10: //Robot Datum Position
+				G_Robot.RobotKukaCmd.bRobotCheckDatum := TRUE;
+				iStepCheckDatum := 20;
+			20:
+				IF NOT G_Robot.RobotKukaCmd.bRobotCheckDatumDone THEN
+					iStepCheckDatum := 30;
+				END_IF
+			30: //Wait datum position
+				tonTimeOut(IN:= TRUE, PT:= T#500S);
+				IF G_Robot.RobotKukaCmd.bRobotCheckDatumDone THEN
+					G_Robot.RobotKukaCmd.bRobotCheckDatum := FALSE;
+					tonTimeOut(IN:=FALSE);
+					iStepCheckDatum := 40;	
+				ELSIF tonTimeOut.Q THEN
+					tonTimeOut(IN:=FALSE);
+					G_Robot.RobotKukaCmd.bRobotCheckDatum := FALSE;
+					G_Error.E20_RobotFailDatumPos := TRUE;	
+					iStepCheckDatum := 10;
+				END_IF
+ 
+			40: //Vision capture datum
+				G_Vision.V20_bRespone := FALSE;
+				G_Vision.V20_sSendCmd := 'TRG,0'; //may change based on vision team
+				G_Vision.V20_bTrigger := TRUE;				
+				iStepCheckDatum := 50;
+			50: //Waiting vision capture done
+				tonTimeOut(IN:= TRUE,PT:= T#90S);
+				IF G_Vision.V20_bRespone THEN
+					G_Vision.V20_bTrigger := FALSE;
+					tonTimeOut(IN:= FALSE);
+					iStepCheckDatum := 60;
+				ELSIF tonTimeOut.Q THEN
+					tonTimeOut(IN:= FALSE);
+					G_Error.E20_VisionTimeOutDatumCheck := TRUE;
+					iStepCheckDatum := 40;
+				END_IF	
+			//60: // Result of vision - Pop out  succefully or not
+			60:
+				G_Values.VA20_sDatumVisionResultStatus := G_Vision.V20_sDatumVisionResultStatus;
+				G_Values.VA20_stDatumVisionResultPos := G_Vision.V20_stDatumVisionResultPos;					
+				iStepCheckDatum := 999;
+			999: 
+				G_Auto.A20_bRobotCheckDatum := FALSE;
+				G_Auto.A20_bRobotCheckDatumDone  := TRUE;
+				iStepCheckDatum := 0;			
+		END_CASE
+ 
+ELSE
+	Reset_RTRIG(CLK := G_MachineControl.bMachineReset);
+	IF Reset_RTRIG.Q THEN
+		G_Error.E40_RobotFailDatumPos 		:= FALSE;
+		G_Error.E40_VisionTimeOutDatumCheck	:= FALSE;
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="ST20_RobotSequence">
+      <LineId Id="76" Count="0" />
+      <LineId Id="415" Count="2" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="389" Count="0" />
+      <LineId Id="231" Count="1" />
+      <LineId Id="403" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="404" Count="2" />
+      <LineId Id="414" Count="0" />
+      <LineId Id="407" Count="0" />
+      <LineId Id="526" Count="0" />
+      <LineId Id="529" Count="1" />
+      <LineId Id="939" Count="1" />
+      <LineId Id="888" Count="0" />
+      <LineId Id="931" Count="4" />
+      <LineId Id="903" Count="1" />
+      <LineId Id="531" Count="58" />
+      <LineId Id="527" Count="0" />
+      <LineId Id="915" Count="0" />
+      <LineId Id="917" Count="3" />
+      <LineId Id="916" Count="0" />
+      <LineId Id="802" Count="0" />
+      <LineId Id="610" Count="5" />
+      <LineId Id="348" Count="0" />
+      <LineId Id="308" Count="3" />
+      <LineId Id="313" Count="6" />
+      <LineId Id="445" Count="0" />
+      <LineId Id="320" Count="0" />
+      <LineId Id="392" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="271" Count="0" />
+      <LineId Id="358" Count="0" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="360" Count="1" />
+      <LineId Id="383" Count="0" />
+      <LineId Id="363" Count="7" />
+      <LineId Id="448" Count="0" />
+      <LineId Id="372" Count="3" />
+      <LineId Id="446" Count="0" />
+      <LineId Id="376" Count="0" />
+      <LineId Id="393" Count="0" />
+      <LineId Id="377" Count="5" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="272" Count="5" />
+      <LineId Id="410" Count="1" />
+      <LineId Id="409" Count="0" />
+      <LineId Id="279" Count="2" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="419" Count="2" />
+      <LineId Id="418" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="80" Count="1" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="85" Count="1" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="617" Count="2" />
+      <LineId Id="616" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="93" Count="1" />
+      <LineId Id="491" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="449" Count="0" />
+      <LineId Id="608" Count="0" />
+      <LineId Id="836" Count="0" />
+      <LineId Id="450" Count="2" />
+      <LineId Id="469" Count="1" />
+      <LineId Id="472" Count="3" />
+      <LineId Id="471" Count="0" />
+      <LineId Id="453" Count="0" />
+      <LineId Id="97" Count="1" />
+      <LineId Id="476" Count="0" />
+      <LineId Id="99" Count="10" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="837" Count="0" />
+      <LineId Id="839" Count="0" />
+      <LineId Id="875" Count="4" />
+      <LineId Id="885" Count="0" />
+      <LineId Id="880" Count="1" />
+      <LineId Id="886" Count="0" />
+      <LineId Id="882" Count="2" />
+      <LineId Id="866" Count="0" />
+      <LineId Id="851" Count="0" />
+      <LineId Id="863" Count="0" />
+      <LineId Id="852" Count="1" />
+      <LineId Id="855" Count="2" />
+      <LineId Id="831" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="952" Count="64" />
+      <LineId Id="951" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

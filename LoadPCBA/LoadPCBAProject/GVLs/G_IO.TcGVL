@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_IO" Id="{de5c9ea9-f091-4f83-a10b-bdb5b82a42e6}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	
+//===================================
+//Input
+//===================================
+
+	I_StartPushButton 		: BOOL;
+	I_ResetPushButton 		: BOOL;
+	I_StopPushButton 		: BOOL;
+	I_LifterUp				: BOOL;
+	I_LifterDown			: BOOL;
+
+//===================================
+//Output
+//===================================
+	O_StartPushButton		: BOOL;
+	O_ResetPushButton	 	: BOOL;
+	O_StopPushButton 		: BOOL;
+	O_LifterUp				: BOOL;
+	O_LifterDown			: BOOL;
+	
+//===================================
+//Safety Input
+//===================================
+ 
+	SI_FrontRightEmoCH1_1 						: BOOL;
+	SI_FrontRightEmoCH1_2 						: BOOL;
+	SI_FrontLeftEmoCH1_1 						: BOOL;
+	SI_FrontLeftEmoCH1_2						: BOOL;
+	SI_FrontRightEmoCH2_1						: BOOL;
+	SI_FrontRightEmoCH2_2						: BOOL;
+	SI_FrontLeftEmoCH2_1						: BOOL;
+	SI_FrontLeftEmoCH2_2						: BOOL;
+	
+//===================================
+//Safety Output
+//===================================
+	SO_CutOffContratorAcPower_1					: BOOL;
+	SO_CutOffContratorAcPower_2 				: BOOL;
+	SO_STO2_1 									: BOOL;
+	SO_STO2_2									: BOOL;
+	SO_STO1_1									: BOOL;
+	SO_STO1_2									: BOOL;
+	SO_Robot1_Acknowledge_1						: BOOL;
+	SO_Robot1_Acknowledge_2						: BOOL;
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

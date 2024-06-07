@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_OEETime" Id="{dad75bc2-8f19-4841-8ced-91404b6b5ade}">
+    <Declaration><![CDATA[TYPE ST_OEETime :
+STRUCT
+	RunTime		: LTIME;
+	IdleTime 	: LTIME;
+	DownTime	: LTIME;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

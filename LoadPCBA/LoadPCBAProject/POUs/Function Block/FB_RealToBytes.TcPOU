@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_RealToBytes" Id="{a8a83422-7963-4444-baad-8c648823c227}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_RealToBytes // Convert Real data into 4 bytes
+VAR_INPUT
+	IN_DATA : REAL; //The Input Data in Real Data type 
+END_VAR
+VAR_OUTPUT
+	UpperByteA :BYTE; //  UpperByte 1 the 25-32 bits from the Data word (Count from Right) 
+	UpperByteB :BYTE; //  UpperByte 2 the 17-24 bits from the Data word (Count from Right)
+	LowerByteC :BYTE; //  LowerByte 1 the 9-16 bits from the Data word (Count from Right)
+	LowerByteD :BYTE; //  LowerByte 2 the 1-8 bits from the Data word (Count from Right)
+END_VAR
+VAR
+	b_Input : BYTE;
+	w_Input : DWORD;
+	r_Data 	: REAL;
+	w_Input1: WORD;
+	UpperDWord : DWORD;
+	LowerDWord : DWORD;
+	
+	UpperWord: WORD;
+	LowerWord: WORD;
+	
+	UpperWordA: WORD;
+	UpperWordB: WORD;
+	LowerWordA: WORD;
+	LowerWordB: WORD;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[r_Data :=  IN_DATA *1000; // remove decimal from real
+w_Input:= TO_DWORD(r_Data);  // Change from real to word
+
+// DWORD DATA Split into two DWORD 
+UpperDWord := SHR(w_Input,16);
+LowerDWord := w_Input - SHL(UpperDWord,16);
+
+//  Change into WORD
+UpperWord := TO_WORD(UpperDWord);
+LowerWord := TO_WORD(LowerDWord);
+
+// Convert WORD to Byte Calculation
+UpperWordA := SHR(UpperWord,8);
+UpperWordB := UpperWord - SHL(UpperWordA,8);
+
+LowerWordA := SHR(LowerWord,8);
+LowerWordB := LowerWord - SHL(LowerWordA,8);
+
+//  Change into Byte
+UpperByteA	:= TO_BYTE(UpperWordB);
+UpperByteB	:= TO_BYTE(UpperWordA);
+
+LowerByteC	:= TO_BYTE(LowerWordB);
+LowerByteD	:= TO_BYTE(LowerWordA);]]></ST>
+    </Implementation>
+    <LineIds Name="FB_RealToBytes">
+      <LineId Id="11" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="15" Count="1" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="59" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="65" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

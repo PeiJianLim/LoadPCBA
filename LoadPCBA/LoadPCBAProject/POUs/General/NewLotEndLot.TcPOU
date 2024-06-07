@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="NewLotEndLot" Id="{8430a53b-e724-4ab8-a5fb-aa6d564024a4}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM NewLotEndLot
+VAR
+	bLotStart: BOOL;
+	RTRIG_EndLot : R_TRIG;
+	iStepEndLot : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//=================================
+//New Lot Confirm
+//=================================
+IF (G_Manual.M_bNewLotConfirm AND NOT bLotStart) OR G_Manual.M_bLoadRecipe THEN
+	G_Values.VA20_byteRobotProgramID := G_Recipe.R20_byteRobotProgramID;
+	G_Values.VA20_stTrayPosition := G_Recipe.R20_stTrayPosition;
+	G_Values.VA20_stPalletPosition := G_Recipe.R20_stPalletPosition;
+	G_Values.VA20_rTrayZaxisPick := G_Recipe.R20_rTrayZaxisPick;
+	G_Values.VA20_rPalletZaxisPlace := G_Recipe.R20_rPalletZaxisPlace;
+//	G_Values.VA00_rConveyorWidth := G_Recipe.R00_rConveyorWidth; //to do
+	G_Auto.A20_bRobotChangeRecipe := TRUE;
+	G_Manual.M_bLoadRecipe := FALSE;
+	IF G_Manual.M_bNewLotConfirm THEN
+		bLotStart := TRUE;
+	END_IF
+END_IF
+
+IF bLotStart AND G_Auto.A20_bRobotChangeRecipeDone THEN
+	G_Manual.M_bLotStarted := TRUE;
+	G_Manual.M_bNewLotConfirm := FALSE;
+	G_Manual.M_bEndLot := FALSE;
+	bLotStart := FALSE;
+END_IF
+
+
+RTRIG_EndLot(CLK:= G_Manual.M_bEndLot);
+
+IF RTRIG_EndLot.Q THEN
+	iStepEndLot := 10;
+END_IF
+
+CASE iStepEndLot OF
+	
+10:
+	IF G_MachineControl.arrstStationControl[2].bJobDone AND G_MachineControl.arrstStationControl[3].bJobDone AND G_MachineControl.arrstStationControl[4].bJobDone THEN
+		;// to do conveyor handle
+		iStepEndLot := 20;
+	END_IF
+
+20:
+	G_Home.H20_bHome := TRUE;
+	iStepEndLot := 30;
+	
+30:
+	IF G_Home.H20_bHomeDone THEN
+		iStepEndLot := 40;
+	END_IF
+	
+40:
+	G_Manual.M_bStart := FALSE;
+	G_Manual.M_bStop := TRUE;
+	iStepEndLot := 50;
+	
+50:
+	G_Manual.M_bEndLot := FALSE;
+	G_Manual.M_bLotStarted := FALSE;
+	bLotStart := FALSE;
+	iStepEndLot := 0;
+END_CASE
+]]></ST>
+    </Implementation>
+    <LineIds Name="NewLotEndLot">
+      <LineId Id="41" Count="1" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="5" Count="1" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="111" Count="2" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="49" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="93" Count="2" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="67" Count="1" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="76" Count="14" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="61" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="DeviceMapping" Id="{ae28f3c1-7902-46d8-98d6-24a892bba281}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+//===========================================================	
+// IO
+//===========================================================
+	Input00_00		AT %I*	: BOOL;
+	Input00_01		AT %I*	: BOOL;
+	Input00_02		AT %I*	: BOOL;
+	Input00_03		AT %I*	: BOOL;
+	Input00_04		AT %I*	: BOOL;
+	Input00_05		AT %I*	: BOOL;
+	Input00_06		AT %I*	: BOOL;
+	Input00_07		AT %I*	: BOOL;
+	Input00_08		AT %I*	: BOOL;
+	Input00_09		AT %I*	: BOOL;
+	Input00_10		AT %I*	: BOOL;
+	Input00_11		AT %I*	: BOOL;
+	Input00_12		AT %I*	: BOOL;
+	Input00_13		AT %I*	: BOOL;
+	Input00_14		AT %I*	: BOOL;
+	Input00_15		AT %I*	: BOOL;
+	
+	Input01_00		AT %I*	: BOOL;
+	Input01_01		AT %I*	: BOOL;
+	Input01_02		AT %I*	: BOOL;
+	Input01_03		AT %I*	: BOOL;
+	Input01_04		AT %I*	: BOOL;
+	Input01_05		AT %I*	: BOOL;
+	Input01_06		AT %I*	: BOOL;
+	Input01_07		AT %I*	: BOOL;
+	Input01_08		AT %I*	: BOOL;
+	Input01_09		AT %I*	: BOOL;
+	Input01_10		AT %I*	: BOOL;
+	Input01_11		AT %I*	: BOOL;
+	Input01_12		AT %I*	: BOOL;
+	Input01_13		AT %I*	: BOOL;
+	Input01_14		AT %I*	: BOOL;
+	Input01_15		AT %I*	: BOOL;
+	
+	Input02_00		AT %I*	: BOOL;
+	Input02_01		AT %I*	: BOOL;
+	Input02_02		AT %I*	: BOOL;
+	Input02_03		AT %I*	: BOOL;
+	Input02_04		AT %I*	: BOOL;
+	Input02_05		AT %I*	: BOOL;
+	Input02_06		AT %I*	: BOOL;
+	Input02_07		AT %I*	: BOOL;
+	Input02_08		AT %I*	: BOOL;
+	Input02_09		AT %I*	: BOOL;
+	Input02_10		AT %I*	: BOOL;
+	Input02_11		AT %I*	: BOOL;
+	Input02_12		AT %I*	: BOOL;
+	Input02_13		AT %I*	: BOOL;
+	Input02_14		AT %I*	: BOOL;
+	Input02_15		AT %I*	: BOOL;
+	
+	
+	Output00_00		AT %Q*	: BOOL;
+	Output00_01		AT %Q*	: BOOL;
+	Output00_02		AT %Q*	: BOOL;
+	Output00_03		AT %Q*	: BOOL;
+	Output00_04		AT %Q*	: BOOL;
+	Output00_05		AT %Q*	: BOOL;
+	Output00_06		AT %Q*	: BOOL;
+	Output00_07		AT %Q*	: BOOL;
+	Output00_08		AT %Q*	: BOOL;
+	Output00_09		AT %Q*	: BOOL;
+	Output00_10		AT %Q*	: BOOL;
+	Output00_11		AT %Q*	: BOOL;
+	Output00_12		AT %Q*	: BOOL;
+	Output00_13		AT %Q*	: BOOL;
+	Output00_14		AT %Q*	: BOOL;
+	Output00_15		AT %Q*	: BOOL;
+	
+	Output01_00		AT %Q*	: BOOL;
+	Output01_01		AT %Q*	: BOOL;
+	Output01_02		AT %Q*	: BOOL;
+	Output01_03		AT %Q*	: BOOL;
+	Output01_04		AT %Q*	: BOOL;
+	Output01_05		AT %Q*	: BOOL;
+	Output01_06		AT %Q*	: BOOL;
+	Output01_07		AT %Q*	: BOOL;
+	Output01_08		AT %Q*	: BOOL;
+	Output01_09		AT %Q*	: BOOL;
+	Output01_10		AT %Q*	: BOOL;
+	Output01_11		AT %Q*	: BOOL;
+	Output01_12		AT %Q*	: BOOL;
+	Output01_13		AT %Q*	: BOOL;
+	Output01_14		AT %Q*	: BOOL;
+	Output01_15		AT %Q*	: BOOL;
+	
+	Output02_00		AT %Q*	: BOOL;
+	Output02_01		AT %Q*	: BOOL;
+	Output02_02		AT %Q*	: BOOL;
+	Output02_03		AT %Q*	: BOOL;
+	Output02_04		AT %Q*	: BOOL;
+	Output02_05		AT %Q*	: BOOL;
+	Output02_06		AT %Q*	: BOOL;
+	Output02_07		AT %Q*	: BOOL;
+	Output02_08		AT %Q*	: BOOL;
+	Output02_09		AT %Q*	: BOOL;
+	Output02_10		AT %Q*	: BOOL;
+	Output02_11		AT %Q*	: BOOL;
+	Output02_12		AT %Q*	: BOOL;
+	Output02_13		AT %Q*	: BOOL;
+	Output02_14		AT %Q*	: BOOL;
+	Output02_15		AT %Q*	: BOOL;
+	
+//===========================================================	
+// Safety IO
+//===========================================================
+	SafetyInput01_01		AT %I*	: BOOL;
+	SafetyInput01_02		AT %I*	: BOOL;
+	SafetyInput01_03		AT %I*	: BOOL;
+	SafetyInput01_04		AT %I*	: BOOL;
+	SafetyInput01_05		AT %I*	: BOOL;
+	SafetyInput01_06		AT %I*	: BOOL;
+	SafetyInput01_07		AT %I*	: BOOL;
+	SafetyInput01_08		AT %I*	: BOOL;
+
+	SafetyOutput01_01		AT %Q*	: BOOL;
+	SafetyOutput01_02		AT %Q*	: BOOL;
+	SafetyOutput01_03		AT %Q*	: BOOL;
+	SafetyOutput01_04		AT %Q*	: BOOL;
+	SafetyOutput01_05		AT %Q*	: BOOL;
+	SafetyOutput01_06		AT %Q*	: BOOL;
+	SafetyOutput01_07		AT %Q*	: BOOL;
+	SafetyOutput01_08		AT %Q*	: BOOL;
+	
+
+//===========================================================	
+// EIP
+//===========================================================
+// Robot
+	KUKA_To_PLC		AT %I* 	: ARRAY[1..128] OF BYTE;
+	PLC_To_KUKA		AT %Q*	: ARRAY[1..128] OF BYTE;
+	
+	
+//Barcode Scanner
+	BarcodeScanner_To_PLC 	AT %I* 	:  ST_BarcodeScanner;
+	PLC_To_BarcodeScanner 	AT %Q* 	:  ST_BarcodeScanner;
+	
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

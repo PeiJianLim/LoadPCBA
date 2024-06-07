@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_BarcodeScanner" Id="{a5314f07-8359-4d6b-8c25-d7258ce4ab85}">
+    <Declaration><![CDATA[TYPE ST_BarcodeScanner :
+STRUCT
+	In_TriggerReady			: BOOL;
+	In_TriggerAck			: BOOL;
+	In_Acquiring			: BOOL;
+	In_MissedAcq			: BOOL;
+	In_noname0_arrBIT_0		: BOOL;
+	In_noname0_arrBIT_1		: BOOL;
+	In_noname0_arrBIT_2		: BOOL;
+	In_noname0_arrBIT_3		: BOOL;
+	In_Decoding				: BOOL;
+	In_DecodeComplete		: BOOL;
+	In_ResultsBufferOverrun : BOOL;
+	In_ResultAvailable		: BOOL;
+	In_noname1_arrBIT_0		: BOOL;
+	In_noname1_arrBIT_1		: BOOL;
+	In_noname1_arrBIT_2		: BOOL;
+	In_GeneralFault			: BOOL;
+	In_SoftEventAck0		: BOOL;
+	In_SoftEventAck1		: BOOL;
+	In_SoftEventAck2		: BOOL;
+	In_SoftEventAck3		: BOOL;
+	In_SoftEventAck4		: BOOL;
+	In_SoftEventAck5		: BOOL;
+	In_SoftEventAck6		: BOOL;
+	In_SoftEventAck7		: BOOL;
+	In_noname2_arrBYTE_0	: BYTE;
+	In_noname2_arrBYTE_1	: BYTE;
+	In_noname2_arrBYTE_2	: BYTE;
+	In_TriggerID			: UINT;
+	In_ResultID				: UINT;
+	In_ResultCode			: UINT;
+	In_ResultExtended		: UINT;
+	In_ResultLength			: UINT;
+	In_ResultData			: ARRAY [0..479] OF BYTE;
+	
+	
+	Out_TriggerEnable		: BOOL;
+	Out_Trigger				: BOOL;
+	Out_BufferResultsEnable	: BOOL;
+	Out_ResultAck			: BOOL;
+	Out_noname0_arrBIT_0	: BOOL;
+	Out_noname0_arrBIT_1	: BOOL;
+	Out_noname0_arrBIT_2	: BOOL;
+	Out_noname0_arrBIT_3	: BOOL;
+	Out_SoftEvent0			: BOOL;
+	Out_SoftEvent1			: BOOL;
+	Out_SoftEvent2			: BOOL;
+	Out_SoftEvent3			: BOOL;
+	Out_SoftEvent4			: BOOL;
+	Out_SoftEvent5			: BOOL;
+	Out_SoftEvent6			: BOOL;
+	Out_SoftEvent7			: BOOL;
+	Out_noname1_arrBYTE_0	: BYTE;
+	Out_noname1_arrBYTE_1	: BYTE;
+	Out_UserDataOption		: UINT;
+	Out_UserDataLength		: UINT;
+	Out_UserData			: ARRAY [0..487] OF BYTE;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST10_BarcodeScanner" Id="{c1db312c-c80d-4816-831f-8a2d1d2e41b9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST10_BarcodeScanner
+VAR
+	fbCognexBarcodeScanner: FB_CognexBarcodeScanner;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbCognexBarcodeScanner(
+	In_bManualMode:= G_MachineControl.stMachineOperateMode.MANUAL,
+	In_bAutoMode:= G_MachineControl.stMachineOperateMode.AUTO OR G_MachineControl.stMachineOperateMode.DRYRUN,
+	In_timeScanTimer:= T#10S, 
+	In_iResultByte:= 20, 
+	In_ioDeviceFault := G_Scanner.In_Signal_Conveyor.In_GeneralFault,
+	In_ioTriggerReady:= G_Scanner.In_Signal_Conveyor.In_TriggerReady, 
+	In_ioTriggerAck:= G_Scanner.In_Signal_Conveyor.In_TriggerAck, 
+	In_ioAcquiring:= G_Scanner.In_Signal_Conveyor.In_Acquiring, 
+	In_ioArrayData:= G_Scanner.In_Signal_Conveyor.In_ResultData, 
+	Out_bDeviceError=> G_Error.E10_BarcodeScannerDeviceError,
+	Out_bErrScanTimeOut=> G_Error.E10_BarcodeTimeout, 
+	Out_ioTriggerEnable=> G_Scanner.Out_Signal_Conveyor.Out_TriggerEnable, 
+	Out_ioTrigger=> G_Scanner.Out_Signal_Conveyor.Out_Trigger, 
+	Out_bEnableReady=> G_Manual.M10_bTriggerScannerEnableReady,
+	Out_bEnableReady=> G_Auto.A10_bTriggerScannerEnableReady,
+	Out_bTriggerDone=> G_Manual.M10_bTriggerScannerDone,
+	Out_bTriggerDone=> G_Auto.A10_bTriggerScannerDone,
+	Out_sAutoBarcode=> G_Auto.A10_sScannerBarcode, 
+	Out_sManualBarcode=> G_Manual.M10_sScannerBarcode, 
+	Out_GetBarcodeDone=> G_Auto.A10_bScannerResultDone,
+	Out_GetBarcodeDone=> G_Manual.M10_bScannerResultDone, 
+	InOut_bAutoTriggerEnable:= G_Auto.A10_bTriggerScannerEnable, 
+	InOut_bManualTriggerEnable:= G_Manual.M10_bTriggerScannerEnable, 
+	InOut_bAutoTrigger:= G_Auto.A10_bTriggerScanner,
+	InOut_bManualTrigger:= G_Manual.M10_bTriggerScanner);
+	]]></ST>
+    </Implementation>
+    <LineIds Name="ST10_BarcodeScanner">
+      <LineId Id="13" Count="0" />
+      <LineId Id="78" Count="1" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="40" Count="3" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="53" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

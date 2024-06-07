@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Error" Id="{31570f81-6450-422a-be03-b05becec13b1}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+//===================================
+//Machine Control MD1000 - MD1004
+//===================================	
+
+	E_EmgStop							AT %MX4000.0 :BOOL;
+	
+//===================================
+//Warning MD1005 - MD1007
+//===================================	
+	
+
+//===================================
+//Conveyor MD1008 - MD1009
+//===================================
+	E00_LifterCylUp 					AT %MX4032.0: BOOL;
+	E00_LifterCylDown 					AT %MX4032.1: BOOL;
+	                        		
+	E00_StopperCylBlock					AT %MX4032.2: BOOL;
+	E00_StopperCylRelease				AT %MX4032.3: BOOL;
+	
+
+//===================================
+//ST10 Barcode Scanner MD1010
+//===================================
+	E10_BarcodeScannerDeviceError		AT %MX4040.0: BOOL;
+	E10_BarcodeTimeout					AT %MX4040.1: BOOL;
+	
+	
+//===================================
+//ST20 Pick And Place MD1020
+//===================================
+	
+	E20_BarcodeScannerDeviceError			AT %MX4080.0: BOOL;
+	E20_BarcodeTimeout						AT %MX4080.1: BOOL;
+	
+	E20_VisionTimeOutInspection				AT %MX4081.0: BOOL;
+
+	E20_RobotFailHome 						AT %MX4082.0: BOOL;
+	E20_RobotFailStart			        	AT %MX4082.1: BOOL;
+	E20_RobotFailServoOn		        	AT %MX4082.2: BOOL;
+    E20_RobotFailToInitialize	        	AT %MX4082.3: BOOL;
+	E20_RobotFailGetID						AT %MX4082.4: BOOL;
+
+	E20_RobotTimeOutFailToPalletFiducial_1	AT %MX4083.0: BOOL;
+	E20_RobotTimeOutFailToPalletFiducial_2	AT %MX4083.1: BOOL;
+	E20_RobotTimeOutFailToTrayFiducial_1	AT %MX4083.2: BOOL;
+	E20_RobotTimeOutFailToTrayFiducial_2	AT %MX4083.3: BOOL;
+	E20_RobotTimeOutFailToPickPCBA			AT %MX4083.4: BOOL;
+	E20_RobotTimeOutFailToPlacePCBA			AT %MX4083.5: BOOL;
+	E20_RobotTimeOutFailToStandbyPallet		AT %MX4083.6: BOOL;
+	E20_RobotTimeOutFailToStandbyTray		AT %MX4083.7: BOOL;
+	
+	E20_RobotFailDatumPos					AT %MX4084.0: BOOL;
+	E20_VisionTimeOutDatumCheck				AT %MX4084.1: BOOL;
+	E20_RobotFailPlaceOverpress				AT %MX4084.2: BOOL;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

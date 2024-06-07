@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST20_Home" Id="{c22a90e2-0714-4bdf-9fdf-c0c7b2026f7f}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST20_Home
+VAR
+	bStart		: BOOL;
+	iStepHome	: INT;
+	tonTimeOut	: TON;
+	Reset_RTRIG	: R_TRIG;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//===================================
+//Home Sequence
+//===================================
+bStart := ((G_MachineControl.stMachineCurrentMode.INITIALIZE) OR
+			 (G_MachineControl.stMachineCurrentMode.AUTO_RUNNING) OR
+			 (G_MachineControl.stMachineCurrentMode.MANUAL_RUNNING));
+			 
+IF NOT G_MachineControl.arrstStationControl[2].bError  THEN
+	
+	CASE iStepHome OF
+		0://Checking condition
+			IF bStart AND NOT G_MachineControl.arrstStationControl[2].bByPassStation AND G_Home.H20_bHome THEN //need to add robot interlock for another robot
+				G_Home.H20_bHomeDone := FALSE;
+				iStepHome := 10;
+			ELSIF bStart AND G_MachineControl.arrstStationControl[2].bByPassStation AND G_Home.H20_bHome THEN //need to add robot interlock for another robot
+				G_Home.H20_bHome	:= FALSE;
+				G_Home.H20_bHomeDone := TRUE;
+				iStepHome := 0;
+			END_IF
+		
+		10:
+			G_Auto.A20_bRobotInitializeDone  := FALSE;
+			G_Auto.A20_bRobotInitialize := TRUE;
+			iStepHome := 20;
+			
+		20:
+			IF G_Auto.A20_bRobotInitializeDone THEN
+				iStepHome := 999;
+			END_IF
+		
+		999: //Home Done
+			G_Home.H20_bHome := FALSE;
+			G_Home.H20_bHomeDone  := TRUE;
+			iStepHome := 0;	
+			
+	END_CASE
+
+ELSIF G_MachineControl.arrstStationControl[2].bError THEN
+	Reset_RTrig(CLK := G_MachineControl.bMachineReset);
+	IF Reset_RTrig.Q THEN
+		G_Error.E20_RobotFailHome 			:= FALSE;
+		G_Error.E20_RobotFailStart			:= FALSE;
+		G_Error.E20_RobotFailServoOn		:= FALSE;
+		G_Error.E20_RobotFailToInitialize	:= FALSE;
+	END_IF
+	
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="ST20_Home">
+      <LineId Id="9" Count="19" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="110" Count="7" />
+      <LineId Id="85" Count="17" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

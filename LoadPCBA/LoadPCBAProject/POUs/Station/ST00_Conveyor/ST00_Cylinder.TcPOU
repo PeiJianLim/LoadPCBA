@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST00_Cylinder" Id="{5f914215-1bb5-40a7-892c-0f9450bef31d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST00_Cylinder
+VAR
+	fbLifter: FB_DoubleActingCylinder;
+	fbStopper: FB_DoubleActingCylinder;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT G_Manual.M_CheckIOUse THEN
+	fbLifter(
+		IN_bManualMode:= G_MachineControl.stMachineOperateMode.MANUAL, 
+		IN_bAutoMode:= G_MachineControl.stMachineOperateMode.AUTO OR G_MachineControl.stMachineOperateMode.DRYRUN, 
+		IN_bWork_IOTrig_Input:= G_Manual.M00_bLifterCylUp OR G_Home.H00_bLifterCylUp, 
+		IN_bHome_IOTrig_Input:= G_Manual.M00_bLifterCylDown OR G_Home.H00_bLifterCylDown, 
+		IN_bWork_PRGTrig:= G_Auto.A00_bLifterCylUp OR G_Home.H00_bLifterCylUp, 
+		IN_bHome_PRGTrig:= G_Auto.A00_bLifterCylDown OR G_Home.H00_bLifterCylDown, 
+		IN_bWork_Rs:= G_IO.I_LifterUp, 
+		IN_bHome_Rs:= G_IO.I_LifterDown, 
+		IN_tWork_Timeout:= T#2S, 
+		IN_tHome_Timeout:= T#2S, 
+		IN_tWork_DelayTime:= T#0S, 
+		IN_tHome_DelayTime:= T#0S, 
+		IN_bAlarmEnable:= TRUE, 
+		IN_bReset:= G_MachineControl.bMachineReset, 
+		IN_tWorkRsCheck:= T#300MS, 
+		IN_tHomeRsCheck:= T#300MS, 
+		OUT_bWork=> G_IO.O_LifterUp, 
+		OUT_bHome=> G_IO.O_LifterDown, 
+		OUT_bWorkDone=> G_Auto.A00_bLifterCylUpDone, 
+		OUT_bWorkDone=> G_Home.H00_bLifterCylUpDone, 
+		OUT_bWorkDone=> G_Manual.M00_bLifterCylUpDone, 
+		OUT_bHomeDone=> G_Auto.A00_bLifterCylDownDone, 
+		OUT_bHomeDone=> G_Home.H00_bLifterCylDownDone, 
+		OUT_bHomeDone=> G_Manual.M00_bLifterCylDownDone, 
+		OUT_bError=> , 
+		OUT_sErrorStatus=> , 
+		OUT_bWorkError=> G_Error.E00_LifterCylUp, 
+		OUT_bHomeError=> G_error.E00_LifterCylDown, 
+		OUT_bRSError=> , 
+		OUT_bInputError=> );
+		
+	fbStopper(
+		IN_bManualMode:= G_MachineControl.stMachineOperateMode.MANUAL, 
+		IN_bAutoMode:= G_MachineControl.stMachineOperateMode.AUTO OR G_MachineControl.stMachineOperateMode.DRYRUN, 
+		IN_bWork_IOTrig_Input:= G_Manual.M00_bStopperCylBlock OR G_Home.H00_bStopperCylBlock, 
+		IN_bHome_IOTrig_Input:= G_Manual.M00_bStopperCylRelease OR G_Home.H00_bStopperCylRelease, 
+		IN_bWork_PRGTrig:= G_Auto.A00_bStopperCylBlock OR G_Home.H00_bStopperCylBlock, 
+		IN_bHome_PRGTrig:= G_Auto.A00_bStopperCylRelease OR G_Home.H00_bStopperCylRelease, 
+		IN_bWork_Rs:= G_IO.I_LifterUp, 
+		IN_bHome_Rs:= G_IO.I_LifterDown, 
+		IN_tWork_Timeout:= T#2S, 
+		IN_tHome_Timeout:= T#2S, 
+		IN_tWork_DelayTime:= T#0S, 
+		IN_tHome_DelayTime:= T#0S, 
+		IN_bAlarmEnable:= TRUE, 
+		IN_bReset:= G_MachineControl.bMachineReset, 
+		IN_tWorkRsCheck:= T#300MS, 
+		IN_tHomeRsCheck:= T#300MS, 
+		OUT_bWork=> G_IO.O_LifterUp, 
+		OUT_bHome=> G_IO.O_LifterDown, 
+		OUT_bWorkDone=> G_Auto.A00_bStopperCylBlockDone, 
+		OUT_bWorkDone=> G_Home.H00_bStopperCylBlockDone, 
+		OUT_bWorkDone=> G_Manual.M00_bStopperCylBlockDone, 
+		OUT_bHomeDone=> G_Auto.A00_bStopperCylReleaseDone, 
+		OUT_bHomeDone=> G_Home.H00_bStopperCylReleaseDone, 
+		OUT_bHomeDone=> G_Manual.M00_bStopperCylReleaseDone, 
+		OUT_bError=> , 
+		OUT_sErrorStatus=> , 
+		OUT_bWorkError=> G_Error.E00_StopperCylBlock, 
+		OUT_bHomeError=> G_error.E00_StopperCylRelease, 
+		OUT_bRSError=> , 
+		OUT_bInputError=> );
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="ST00_Cylinder">
+      <LineId Id="176" Count="0" />
+      <LineId Id="99" Count="1" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="102" Count="5" />
+      <LineId Id="130" Count="2" />
+      <LineId Id="111" Count="7" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="136" Count="1" />
+      <LineId Id="120" Count="4" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="141" Count="29" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="177" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

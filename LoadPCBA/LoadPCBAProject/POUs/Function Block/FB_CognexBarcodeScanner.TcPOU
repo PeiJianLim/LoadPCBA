@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_CognexBarcodeScanner" Id="{867789ec-6e41-4b02-83b2-4c05f7fdccd4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CognexBarcodeScanner
+VAR_INPUT
+	In_bManualMode		: BOOL; // Manual Mode
+	In_bAutoMode		: BOOL; // Auto Mode
+	In_timeScanTimer	: TIME;
+	In_iResultByte		: INT;
+	In_ioDeviceFault	: BOOL;
+	In_ioTriggerReady	: BOOL;
+	In_ioTriggerAck		: BOOL;
+	In_ioAcquiring		: BOOL;
+	In_ioArrayData		: ARRAY [1..480] OF BYTE;
+END_VAR
+VAR_OUTPUT
+	Out_bDeviceError	: BOOL;
+	Out_bErrScanTimeOut : BOOL;
+	Out_ioTriggerEnable	: BOOL;
+	Out_ioTrigger		: BOOL;
+	Out_bEnableReady	: BOOL;
+	Out_bTriggerDone	: BOOL;
+	Out_sAutoBarcode	: STRING;
+	Out_sManualBarcode	: STRING;
+	Out_GetBarcodeDone	: BOOL;	
+END_VAR
+VAR_IN_OUT
+	InOut_bAutoTriggerEnable	: BOOL;
+	InOut_bManualTriggerEnable	: BOOL;
+	InOut_bAutoTrigger			: BOOL;
+	InOut_bManualTrigger		: BOOL;
+END_VAR
+VAR
+	rTrig_TriggerEnable: R_TRIG;
+	fTrig_TriggerEnable: F_TRIG;
+	
+	rTrig_Trigger: R_TRIG;
+	iStepTriggerEnable	: INT;
+	iStepTrigger 		: INT;
+	iforCount			: INT;
+	sChar				: STRING(1);
+	tonTimeOut			: TON;
+	sBarcode			: STRING;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Device Error
+Out_bDeviceError := In_ioDeviceFault;
+rTrig_TriggerEnable(CLK:=(InOut_bAutoTriggerEnable AND In_bAutoMode) OR (InOut_bManualTriggerEnable AND In_bManualMode));
+fTrig_TriggerEnable(CLK:=(InOut_bAutoTriggerEnable AND In_bAutoMode) OR (InOut_bManualTriggerEnable AND In_bManualMode));
+	
+rTrig_Trigger(CLK:=(InOut_bAutoTrigger AND In_bAutoMode) OR (InOut_bManualTrigger AND In_bManualMode));
+
+Out_bEnableReady := In_ioTriggerReady;
+
+// Enable Trigger
+CASE iStepTriggerEnable OF
+	
+	0 :
+		IF rTrig_TriggerEnable.Q THEN
+			Out_ioTriggerEnable := TRUE;
+			iStepTriggerEnable := 10;
+		ELSIF fTrig_TriggerEnable.Q THEN
+			Out_ioTriggerEnable := FALSE;
+			Out_bTriggerDone := FALSE;
+			iStepTriggerEnable := 100;
+		END_IF
+		
+	10:
+		IF In_ioTriggerReady THEN
+			InOut_bAutoTriggerEnable := TRUE;
+			iStepTriggerEnable := 0;
+		ELSIF fTrig_TriggerEnable.Q THEN
+			Out_ioTriggerEnable := FALSE;
+			Out_bTriggerDone := FALSE;
+			iStepTriggerEnable := 100;
+		END_IF
+		
+	100:
+		IF NOT In_ioTriggerReady THEN
+			Out_bTriggerDone := FALSE;
+			iStepTriggerEnable := 0;
+		END_IF
+		
+END_CASE
+
+CASE iStepTrigger OF
+	
+	0:
+		IF rTrig_Trigger.Q THEN
+			Out_bErrScanTimeOut := FALSE;
+			IF In_ioTriggerReady THEN
+				Out_bTriggerDone := FALSE;
+				Out_GetBarcodeDone := FALSE;
+				Out_ioTrigger := TRUE;
+				iStepTrigger := 10;
+			ELSE
+				Out_bTriggerDone := FALSE;
+				Out_GetBarcodeDone := FALSE;
+				Out_ioTriggerEnable := FALSE;
+				iStepTrigger := 100;
+			END_IF
+		END_IF
+		
+	10:
+		IF In_ioTriggerAck AND In_ioAcquiring THEN
+			sBarcode := '';
+			IF In_bAutoMode THEN
+				Out_sAutoBarcode := '';
+			END_IF
+			IF In_bManualMode THEN
+				Out_sManualBarcode := '';
+			END_IF
+			iStepTrigger := 20;
+		END_IF
+	
+	20: 
+		tonTimeOut(IN:= TRUE, PT:= In_timeScanTimer);
+		IF NOT In_ioAcquiring THEN
+			tonTimeOut(IN:= FALSE);
+			FOR iforCount:=1 TO In_iResultByte BY 1 DO
+				IF In_ioArrayData[iforCount] <> 0 THEN
+					sChar := F_ToCHR(STRING_TO_BYTE(CONCAT('16#',WORD_TO_HEXSTR(In_ioArrayData[iforCount], 1, FALSE))));
+					sBarcode:= CONCAT(sBarcode,sChar);
+					IF In_bAutoMode THEN
+						Out_sAutoBarcode := sBarcode;
+					END_IF
+					IF In_bManualMode THEN
+						Out_sManualBarcode := sBarcode;
+					END_IF
+				END_IF
+			END_FOR
+			iStepTrigger := 30;
+		ELSIF tonTimeOut.Q THEN
+			tonTimeOut(IN:= FALSE);
+			IF In_bAutoMode THEN
+				InOut_bAutoTrigger := FALSE;
+			END_IF
+			IF In_bManualMode THEN
+				InOut_bManualTrigger := FALSE;
+			END_IF
+			Out_bTriggerDone := TRUE;
+			Out_ioTrigger := FALSE;
+			Out_bErrScanTimeOut := TRUE;
+			iStepTrigger := 0;
+		END_IF
+		
+	30:	
+		Out_GetBarcodeDone := TRUE;
+		Out_bTriggerDone := TRUE;
+		IF In_bAutoMode THEN
+			InOut_bAutoTrigger := FALSE;
+		END_IF
+		IF In_bManualMode THEN
+			InOut_bManualTrigger := FALSE;
+		END_IF
+		Out_ioTrigger := FALSE;
+		iStepTrigger := 0;
+		
+	100:
+		IF In_bAutoMode THEN
+			InOut_bAutoTriggerEnable := TRUE;
+		END_IF
+		IF In_bManualMode THEN
+			InOut_bManualTriggerEnable := FALSE;
+		END_IF
+		iStepTrigger := 110;
+	
+	110:
+		IF In_ioTriggerReady THEN
+			Out_ioTrigger := TRUE;
+			iStepTrigger := 10;
+		END_IF	
+
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_CognexBarcodeScanner">
+      <LineId Id="701" Count="1" />
+      <LineId Id="797" Count="1" />
+      <LineId Id="703" Count="0" />
+      <LineId Id="816" Count="0" />
+      <LineId Id="888" Count="0" />
+      <LineId Id="887" Count="0" />
+      <LineId Id="815" Count="0" />
+      <LineId Id="704" Count="2" />
+      <LineId Id="796" Count="0" />
+      <LineId Id="710" Count="4" />
+      <LineId Id="890" Count="0" />
+      <LineId Id="715" Count="6" />
+      <LineId Id="789" Count="0" />
+      <LineId Id="800" Count="0" />
+      <LineId Id="891" Count="0" />
+      <LineId Id="795" Count="0" />
+      <LineId Id="722" Count="3" />
+      <LineId Id="893" Count="0" />
+      <LineId Id="726" Count="7" />
+      <LineId Id="735" Count="0" />
+      <LineId Id="840" Count="0" />
+      <LineId Id="736" Count="0" />
+      <LineId Id="894" Count="0" />
+      <LineId Id="737" Count="3" />
+      <LineId Id="895" Count="0" />
+      <LineId Id="741" Count="8" />
+      <LineId Id="804" Count="4" />
+      <LineId Id="803" Count="0" />
+      <LineId Id="750" Count="10" />
+      <LineId Id="810" Count="4" />
+      <LineId Id="809" Count="0" />
+      <LineId Id="761" Count="4" />
+      <LineId Id="818" Count="0" />
+      <LineId Id="766" Count="0" />
+      <LineId Id="819" Count="3" />
+      <LineId Id="896" Count="0" />
+      <LineId Id="767" Count="6" />
+      <LineId Id="897" Count="0" />
+      <LineId Id="823" Count="0" />
+      <LineId Id="828" Count="3" />
+      <LineId Id="774" Count="4" />
+      <LineId Id="832" Count="2" />
+      <LineId Id="837" Count="1" />
+      <LineId Id="836" Count="0" />
+      <LineId Id="780" Count="7" />
+      <LineId Id="63" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

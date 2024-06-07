@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_MachineControl" Id="{85fab7e0-a368-4838-92ed-3695605b3661}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	iStation				: INT := 2;
+END_VAR
+
+VAR_GLOBAL
+	stMachineOperateMode	:ST_MachineOperateMode;
+	stMachineCurrentMode	:ST_MachineCurrentMode;
+	stOEETime				:ST_OEETime;
+	arrstStationControl		:ARRAY[0..iStation] OF ST_StationStructure;
+	arrsStationCycleTime	:ARRAY[0..iStation] OF STRING;
+	
+	bMainError				:BOOL;
+	bMachineReset			:BOOL;
+	bInitialize				:BOOL;
+	bInitializeDone			:BOOL;
+	bDryRun					:BOOL;
+	bDoorIsLocked			:BOOL;
+	bBypassDoor				:BOOL;
+	
+	bSafetyEnable			:BOOL;
+	
+	bBypassMES				: BOOL;
+	bBypassWholeMachine		: BOOL;
+	
+	sMachineStatus			:STRING;
+	sMachineCurrentStatus	:STRING;
+	
+	arrsST10StepStatus	: ARRAY [1..100] OF STRING;
+	arrtimeST10StepTime	: ARRAY [1..100] OF TIME;
+	
+	arrsST20StepStatus	: ARRAY [1..100] OF STRING;
+	arrtimeST20StepTime	: ARRAY [1..100] OF TIME;
+	
+	//
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

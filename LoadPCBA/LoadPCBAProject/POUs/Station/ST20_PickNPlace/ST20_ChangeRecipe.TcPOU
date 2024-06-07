@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST20_ChangeRecipe" Id="{e47df533-8588-4188-b42d-77021f474417}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST20_ChangeRecipe
+VAR
+	tonTimeOut		: TON;
+	tonDelay		: TON;
+	Reset_RTRIG		: R_TRIG;
+	iStepChangeRobotProgram : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//===================================
+//Robot Change Program
+//===================================
+IF NOT G_MachineControl.arrstStationControl[2].bError THEN
+ 
+	CASE iStepChangeRobotProgram OF
+		 0:
+		 	IF G_Auto.A20_bRobotChangeRecipe AND NOT G_MachineControl.stMachineCurrentMode.MANUAL_RUNNING THEN
+				G_Auto.A20_bRobotChangeRecipeDone  := FALSE;
+				iStepChangeRobotProgram := 10;
+			END_IF
+		10: //
+			G_Robot.RobotKukaStandard.bStop	:= TRUE;
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStepChangeRobotProgram := 20;
+			END_IF	
+		20:
+			G_Robot.RobotKukaStandard.bStop	:= FALSE;
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iStepChangeRobotProgram := 30;
+			END_IF
+		30:
+			G_Robot.RobotKukaStandard.bReset	:= TRUE;
+			IF NOT G_Robot.RobotKukaStandard.bStopped THEN
+				iStepChangeRobotProgram := 40;
+			END_IF
+		40:
+			G_Robot.RobotKukaStandard.bStart	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bStart THEN
+				iStepChangeRobotProgram := 50;
+			END_IF
+		50: 
+			G_Robot.RobotKukaStandard.bReset	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bReset THEN
+				iStepChangeRobotProgram := 60;
+			END_IF	
+		60: //Robot program
+			G_Robot.RobotKukaStandard.bAppID0 := BIT_TO_BOOL(G_Values.VA20_byteRobotProgramID.0);
+			G_Robot.RobotKukaStandard.bAppID1 := BIT_TO_BOOL(G_Values.VA20_byteRobotProgramID.1);
+			G_Robot.RobotKukaStandard.bAppID2 := BIT_TO_BOOL(G_Values.VA20_byteRobotProgramID.2);
+			iStepChangeRobotProgram := 70;
+		70: 	
+			tonTimeOut(IN:=TRUE, PT:=T#1S);
+			IF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				iStepChangeRobotProgram := 80;
+			END_IF
+		80: //Robot start
+			G_Robot.RobotKukaStandard.bStart := TRUE;
+			iStepChangeRobotProgram := 90;
+		90: //Wait start
+			tonTimeOut(IN:= TRUE, PT:= T#50S);
+			IF G_Robot.RobotKukaStandard.bRunning THEN
+				tonTimeOut(IN:=FALSE);
+				iStepChangeRobotProgram := 999;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bStart := FALSE;
+				G_Error.E20_RobotFailStart := TRUE;
+				iStepChangeRobotProgram := 80;
+			END_IF	
+		999: 
+			G_Auto.A20_bRobotChangeRecipe := FALSE;
+			G_Auto.A20_bRobotChangeRecipeDone  := TRUE;
+			iStepChangeRobotProgram := 0;			
+	END_CASE
+ 
+ELSE
+	Reset_RTRIG(CLK := G_MachineControl.bMachineReset);
+	IF Reset_RTRIG.Q THEN
+		G_Error.E20_RobotFailHome 			:= FALSE;
+		G_Error.E20_RobotFailStart			:= FALSE;
+		G_Error.E20_RobotFailServoOn		:= FALSE;
+		G_Error.E20_RobotFailToInitialize 	:= FALSE;
+	END_IF
+END_IF		]]></ST>
+    </Implementation>
+    <LineIds Name="ST20_ChangeRecipe">
+      <LineId Id="93" Count="78" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

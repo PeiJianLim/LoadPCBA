@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_ScaraRobotCmd" Id="{91123c08-7294-44f6-8014-dcac70b5041f}">
+    <Declaration><![CDATA[TYPE ST_ScaraRobotCmd :
+STRUCT
+//===================================
+//Output
+//===================================
+
+	bRobotPalletFiducial1				: BOOL;
+	bRobotPalletFiducial2				: BOOL;
+	bRobotTrayFiducial1					: BOOL;
+	bRobotTrayFiducial2					: BOOL;
+	bRobotPickPCBA						: BOOL;
+	bRobotPlacePCBA						: BOOL;
+	bRobotStandbyAtPallet				: BOOL;
+	bRobotStandbyAtTray					: BOOL;
+	
+	bRobotGripperOnOff					: BOOL;
+	
+	bRobotCheckDatum					: BOOL;
+	
+	bRobotDryRun						: BOOL;
+
+//===================================
+//Input
+//===================================
+	
+	bRobotPalletFiducial1Done			: BOOL;
+	bRobotPalletFiducial2Done			: BOOL;
+	bRobotTrayFiducial1Done				: BOOL;
+	bRobotTrayFiducial2Done				: BOOL;
+	bRobotPickPCBADone					: BOOL;
+	bRobotPlacePCBADone					: BOOL;
+	bRobotStandbyAtPalletDone			: BOOL;
+	bRobotStandbyAtTrayDone				: BOOL;
+	
+	bRobotGripperOnDone					: BOOL;
+	
+	bRobotCheckDatumDone				: BOOL;
+	
+	bRobotFailPlaceOverPress			: BOOL;
+
+	//PLC to Robot
+	rRobotPlace_X						: REAL;
+	rRobotPlace_Y						: REAL;
+	rRobotPlace_Z 						: REAL;
+	rRobotPlace_A						: REAL;
+	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

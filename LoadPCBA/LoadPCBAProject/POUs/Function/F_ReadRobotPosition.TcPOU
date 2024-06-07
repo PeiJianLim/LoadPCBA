@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="F_ReadRobotPosition" Id="{d09d1508-98a7-4d6a-bc37-558579fe2899}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_ReadRobotPosition : REAL
+VAR_INPUT
+	IN_Upper		: WORD; //The Upper 16 Bits data (1st WORD) from Full 32 Bits Data(DWORD)
+	IN_Lower		: WORD; //The Lower 16 Bits data (2st WORD) from Full 32 Bits Data(DWORD)
+END_VAR
+VAR
+	d_Input : DWORD;
+	i_Input : REAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// IN_Upper is WORD from KUKA EIP
+//d_Input = DWORD
+//INSERT WORD INTO DWORD
+// SHL Shift Left 16 bit of data + Lower 16 bit of data 
+// Convert DWORD to REAL 
+
+d_Input :=  IN_Upper;
+d_Input := SHL(d_Input,16) + IN_Lower;
+i_Input:= TO_REAL(DWORD_TO_DINT(d_Input));
+F_ReadRobotPosition := (i_Input/1000);]]></ST>
+    </Implementation>
+    <LineIds Name="F_ReadRobotPosition">
+      <LineId Id="12" Count="4" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

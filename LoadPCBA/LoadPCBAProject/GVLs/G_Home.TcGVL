@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Home" Id="{cddaaeec-b7ab-4164-8f17-905fcb8e6899}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	
+//===================================
+//Conveyor
+//===================================
+	H00_bLifterCylUp			: BOOL;
+	H00_bLifterCylUpDone		: BOOL;
+	H00_bLifterCylDown			: BOOL;
+	H00_bLifterCylDownDone		: BOOL;
+
+	H00_bStopperCylBlock		: BOOL;
+	H00_bStopperCylBlockDone	: BOOL;	
+	H00_bStopperCylRelease		: BOOL;
+	H00_bStopperCylReleaseDone	: BOOL;	
+
+//===================================
+//ST10 Barcode Scanner
+//===================================
+	
+//===================================
+//ST20 Pick And Place
+//===================================
+	H20_bHome 					: BOOL;
+	H20_bHomeDone				: BOOL;
+
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

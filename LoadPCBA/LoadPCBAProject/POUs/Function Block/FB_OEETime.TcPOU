@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_OEETime" Id="{bd497525-2d92-435d-9e21-4a7fb2eb467e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_OEETime
+VAR_INPUT
+	In_stMachineCurrentMode : ST_MachineCurrentMode;
+	In_iTotalReject	: INT;
+	In_iTotalPass	: INT;
+END_VAR
+VAR_OUTPUT
+	Out_iTotalOutput	: INT;
+END_VAR
+VAR_IN_OUT
+	InOut_stOEETime	: ST_OEETime;
+END_VAR
+VAR
+	tonRunTimer			: ton;
+	tonIdleTimer		: ton;
+	tonDownTimer		: ton;
+	tonUnknowTimer		: ton;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF In_stMachineCurrentMode.AUTO_RUNNING THEN
+	tonRunTimer(IN := In_stMachineCurrentMode.AUTO_RUNNING, PT:=T#1S);
+	IF tonRunTimer.Q THEN
+		tonRunTimer(IN := FALSE);
+		InOut_stOEETime.RunTime := InOut_stOEETime.RunTime + TIME_TO_LTIME(tonRunTimer.PT);
+	END_IF
+ELSE
+	InOut_stOEETime.RunTime := InOut_stOEETime.RunTime + TIME_TO_LTIME(tonRunTimer.ET);
+	tonRunTimer(IN := FALSE);
+END_IF
+
+IF In_stMachineCurrentMode.STOP THEN
+	tonIdleTimer(IN := In_stMachineCurrentMode.STOP, PT:=T#1S);
+	IF tonIdleTimer.Q THEN
+		tonIdleTimer(IN := FALSE);
+		InOut_stOEETime.IdleTime := InOut_stOEETime.IdleTime + TIME_TO_LTIME(tonIdleTimer.PT);
+	END_IF
+ELSE
+	InOut_stOEETime.IdleTime := InOut_stOEETime.IdleTime + TIME_TO_LTIME(tonIdleTimer.ET);
+	tonIdleTimer(IN := FALSE);
+END_IF
+
+IF NOT In_stMachineCurrentMode.AUTO_RUNNING AND NOT In_stMachineCurrentMode.STOP AND NOT In_stMachineCurrentMode.DRYRUN_RUNNING
+	AND NOT In_stMachineCurrentMode.INITIALIZE AND NOT In_stMachineCurrentMode.MANUAL_RUNNING AND NOT In_stMachineCurrentMode.ERROR_MODE THEN
+	tonUnknowTimer(IN := TRUE, PT:=T#1S);
+	IF tonUnknowTimer.Q THEN
+		tonUnknowTimer(IN := FALSE);
+		InOut_stOEETime.IdleTime := InOut_stOEETime.IdleTime + TIME_TO_LTIME(tonUnknowTimer.PT);
+	END_IF
+ELSE
+	InOut_stOEETime.IdleTime := InOut_stOEETime.IdleTime + TIME_TO_LTIME(tonUnknowTimer.ET);
+	tonUnknowTimer(IN := FALSE);
+END_IF
+
+IF In_stMachineCurrentMode.ERROR_MODE THEN
+	tonDownTimer(IN := In_stMachineCurrentMode.ERROR_MODE, PT:=T#1S);
+	IF tonDownTimer.Q THEN
+		tonDownTimer(IN := FALSE);
+		InOut_stOEETime.DownTime := InOut_stOEETime.DownTime + TIME_TO_LTIME(tonDownTimer.PT);
+	END_IF
+ELSE
+	InOut_stOEETime.DownTime := InOut_stOEETime.DownTime + TIME_TO_LTIME(tonDownTimer.ET);
+	tonDownTimer(IN := FALSE);
+END_IF
+
+Out_iTotalOutput := In_iTotalReject + In_iTotalPass;]]></ST>
+    </Implementation>
+    <LineIds Name="FB_OEETime">
+      <LineId Id="267" Count="44" />
+      <LineId Id="130" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

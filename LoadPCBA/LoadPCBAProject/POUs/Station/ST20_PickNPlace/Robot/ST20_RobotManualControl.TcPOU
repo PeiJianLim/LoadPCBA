@@ -1,0 +1,394 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="ST20_RobotManualControl" Id="{8dc61afd-7024-418b-9ebd-f0fc4fb4dd77}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM ST20_RobotManualControl
+VAR
+	iRobotPowerOn	: INT;
+	timeDone		: TIME;
+	tonTimeOut		: TON;
+	tondelay		: TON;
+	robotProgramID : BYTE;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[timeDone := T#70MS;
+
+//============================	
+//General
+//============================
+ 
+IF G_MachineControl.stMachineOperateMode.MANUAL THEN	
+	IF G_Manual.M20_bRobotHome THEN
+		G_Robot.RobotKukaStandard.bHome := TRUE;
+		IF G_Robot.RobotKukaStandard.bHome THEN //Req Robot Home
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaStandard.bHomeDone AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bHome := FALSE;
+				G_Manual.M20_bRobotHome	:= FALSE;
+			END_IF
+		END_IF
+	END_IF
+	IF G_Manual.M20_bRobotEnable THEN
+		G_Robot.RobotKukaStandard.bEnable := TRUE;
+		IF G_Robot.RobotKukaStandard.bEnable THEN //Req Robot Start
+			tonTimeOut(IN:= TRUE, PT:= T#5S);
+			IF G_Robot.RobotKukaStandard.bEnabled THEN
+				tonTimeOut(IN:= FALSE);
+			ELSIF tonTimeOut.Q THEN
+				G_Error.E20_RobotFailServoOn := TRUE;
+				tonTimeOut(IN:= FALSE);
+			END_IF
+		END_IF
+	END_IF
+ 
+	IF G_Manual.M20_bRobotStart THEN
+		G_Robot.RobotKukaStandard.bStart := TRUE;
+		IF G_Robot.RobotKukaStandard.bStart THEN //Req Robot Start
+			IF G_Robot.RobotKukaStandard.bRunning THEN
+				G_Robot.RobotKukaStandard.bStop := FALSE;
+				//G_Manual.M20_bRobotStart := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	IF G_Manual.M20_bRobotStop THEN
+		G_Robot.RobotKukaStandard.bStop := TRUE;
+		IF G_Robot.RobotKukaStandard.bStop THEN //Req Robot Stop
+			G_Robot.RobotKukaStandard.bStart := FALSE;
+			IF G_Robot.RobotKukaStandard.bStopped THEN
+				G_Robot.RobotKukaStandard.bStop := FALSE;
+				G_Manual.M20_bRobotStop := FALSE;
+			END_IF			
+		END_IF
+	END_IF
+	IF G_Manual.M20_bRobotReset THEN
+		G_Robot.RobotKukaStandard.bReset := TRUE;
+		IF G_Robot.RobotKukaStandard.bReset THEN //Req Robot Reset
+			IF NOT G_Robot.RobotKukaStandard.bError THEN
+				G_Robot.RobotKukaStandard.bReset := FALSE;
+				G_Manual.M20_bRobotReset := FALSE;
+			END_IF			
+		END_IF
+	END_IF
+ 
+	IF G_Manual.M20_bRobotPause THEN
+		G_Robot.RobotKukaStandard.bPause := TRUE;
+		IF G_Robot.RobotKukaStandard.bPause THEN //Req Robot Pause
+			IF G_Robot.RobotKukaStandard.bPaused THEN
+				G_Robot.RobotKukaStandard.bPause := FALSE;
+				G_Manual.M20_bRobotPause := FALSE;
+			END_IF
+		END_IF		
+	END_IF
+ 
+	IF G_Manual.M20_bRobotContinue THEN
+		G_Robot.RobotKukaStandard.bContinue := TRUE;
+		IF G_Robot.RobotKukaStandard.bContinue THEN //Req Robot Continue
+			IF G_Robot.RobotKukaStandard.bRunning THEN
+				G_Robot.RobotKukaStandard.bContinue := FALSE;
+				G_Manual.M20_bRobotContinue := FALSE;
+			END_IF
+		END_IF
+	END_IF
+
+	IF G_Manual.M20_bRobotPowerOn THEN //Req Robot Power On (Enable, Start, Ready For Command
+		CASE iRobotPowerOn OF
+		0: //
+			G_Robot.RobotKukaStandard.bStop	:= TRUE;
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iRobotPowerOn := 10;
+			END_IF	
+		10:
+			G_Robot.RobotKukaStandard.bStop	:= FALSE;
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iRobotPowerOn := 20;
+			END_IF
+		20:
+			G_Robot.RobotKukaStandard.bEnable	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bEnable THEN
+				iRobotPowerOn := 30;
+			END_IF
+		30:
+			tonDelay(IN:=TRUE, PT:=T#2S);
+			IF tonDelay.Q THEN
+				tonDelay(IN:=FALSE);
+				iRobotPowerOn := 40;
+			END_IF
+		40: //Servo On @ Enable
+			G_Robot.RobotKukaStandard.bEnable	:= TRUE;
+			G_Robot.RobotKukaStandard.bStop	:= FALSE; 
+			iRobotPowerOn := 50;
+		50:
+			tonTimeOut(IN:= TRUE, PT:= T#5S);
+			IF G_Robot.RobotKukaStandard.bEnabled THEN
+				tonTimeOut(IN:= FALSE);
+				iRobotPowerOn := 60;
+			ELSIF tonTimeOut.Q THEN
+				G_Error.E20_RobotFailServoOn := TRUE;
+				tonTimeOut(IN:= FALSE);
+				iRobotPowerOn := 40;
+			END_IF
+		60:
+			G_Robot.RobotKukaStandard.bReset	:= TRUE;
+			IF NOT G_Robot.RobotKukaStandard.bStopped THEN
+				iRobotPowerOn := 70;
+			END_IF
+		70:
+			G_Robot.RobotKukaStandard.bStart	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bStart THEN
+				iRobotPowerOn := 80;
+			END_IF
+		80: 
+			G_Robot.RobotKukaStandard.bReset	:= FALSE;
+			IF NOT G_Robot.RobotKukaStandard.bReset THEN
+				iRobotPowerOn := 90;
+			END_IF
+		90: 	
+			tonTimeOut(IN:=TRUE, PT:=T#1S);
+			IF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				iRobotPowerOn := 100;
+			END_IF
+		100: //Robot start
+			G_Robot.RobotKukaStandard.bStart := TRUE;
+			iRobotPowerOn := 110;
+		110: //Wait start
+			tonTimeOut(IN:= TRUE, PT:= T#50S);
+			IF G_Robot.RobotKukaStandard.bRunning THEN
+				tonTimeOut(IN:=FALSE);
+				iRobotPowerOn := 0;
+				G_Manual.M20_bRobotPowerOn := FALSE;
+			ELSIF tonTimeOut.Q THEN
+				tonTimeOut(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bStart := FALSE;
+				G_Error.E20_RobotFailStart := TRUE;	
+				iRobotPowerOn := 100;
+			END_IF
+		END_CASE
+	END_IF
+	
+	IF G_Manual.M20_bRobotStandbyPos THEN
+		G_Robot.RobotKukaStandard.bStandbyPosition := TRUE;
+		IF G_Robot.RobotKukaStandard.bStandbyPosition THEN //Robot Standby Position
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaStandard.bStandbyPositionDone AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bStandbyPosition := FALSE;
+				G_Manual.M20_bRobotStandbyPos := FALSE;
+			END_IF
+		END_IF
+	END_IF
+ 
+	IF G_Manual.M20_bClearMessage THEN
+		G_Robot.RobotKukaStandard.bClearMessage := TRUE;
+		IF G_Robot.RobotKukaStandard.bClearMessage THEN //Robot Standby Position
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaStandard.bClearMessageDone AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaStandard.bClearMessageDone := FALSE;
+				G_Manual.M20_bClearMessage := FALSE;
+			END_IF
+		END_IF
+	END_IF	
+ 
+	IF G_Manual.M20_bRobotGripperOnOff AND NOT G_Robot.RobotKukaCmd.bRobotGripperOnDone THEN //Robot Gripper
+		G_Robot.RobotKukaCmd.bRobotGripperOnOff := TRUE;
+	ELSIF NOT G_Manual.M20_bRobotGripperOnOff AND G_Robot.RobotKukaCmd.bRobotGripperOnDone THEN
+		G_Robot.RobotKukaCmd.bRobotGripperOnOff := FALSE;
+	END_IF
+
+	
+//============================	
+//Sequence
+//============================
+	//Robot Pallet Fiducial 1 
+	IF G_Manual.M20_bRobotPalletFiducial1 THEN
+		G_Robot.RobotKukaCmd.bRobotPalletFiducial1 := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotPalletFiducial1 THEN
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotPalletFiducial1Done AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotPalletFiducial1 := FALSE;
+				G_Manual.M20_bRobotPalletFiducial1 := FALSE;
+			END_IF
+		END_IF
+	END_IF
+
+	//Robot Pallet Fiducial 2
+	IF G_Manual.M20_bRobotPalletFiducial2 THEN
+		G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stPalletPosition.stFiducialDistance2Value.Xpos;
+		G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stPalletPosition.stFiducialDistance2Value.Ypos;
+		G_Robot.RobotKukaCmd.rRobotPlace_Z := 0; //G_Values.VA20_rTrayZaxisPick; 
+		G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stPalletPosition.stFiducialDistance2Value.Apos;
+		G_Robot.RobotKukaCmd.bRobotPalletFiducial2 := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotPalletFiducial2 THEN
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotPalletFiducial2Done AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotPalletFiducial2 := FALSE;
+				G_Manual.M20_bRobotPalletFiducial2 := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	
+	//Robot Tray Fiducial 1 
+	IF G_Manual.M20_bRobotTrayFiducial1 THEN
+		G_Robot.RobotKukaCmd.bRobotTrayFiducial1 := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotTrayFiducial1 THEN
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotTrayFiducial1Done AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotTrayFiducial1 := FALSE;
+				G_Manual.M20_bRobotTrayFiducial1 := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	
+	//Robot Tray Fiducial 2
+	IF G_Manual.M20_bRobotTrayFiducial2 THEN
+		G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stTrayPosition.stFiducialDistance2Value.Xpos;
+		G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stTrayPosition.stFiducialDistance2Value.Ypos;
+		G_Robot.RobotKukaCmd.rRobotPlace_Z := 0; 
+		G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stTrayPosition.stFiducialDistance2Value.Apos;
+		G_Robot.RobotKukaCmd.bRobotTrayFiducial2 := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotTrayFiducial2 THEN
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotTrayFiducial2Done AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotTrayFiducial2 := FALSE;
+				G_Manual.M20_bRobotTrayFiducial2 := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	
+	//Robot Pick PCBA
+	IF G_Manual.M20_bRobotPickPCBAPos THEN
+		IF G_Manual.M20_bWithVisionData AND G_Vision.V20_stResultTrayPosition.Xpos > 0 AND G_Vision.V20_stResultTrayPosition.Ypos > 0 THEN 
+			G_Robot.RobotKukaCmd.rRobotPlace_X := G_Vision.V20_stResultTrayPosition.Xpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Vision.V20_stResultTrayPosition.Ypos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rTrayZaxisPick; 
+			G_Robot.RobotKukaCmd.rRobotPlace_A := G_Vision.V20_stResultTrayPosition.Apos;
+		ELSE 
+			G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stTrayPosition.stPocket.Xpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stTrayPosition.stPocket.Ypos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rTrayZaxisPick; 
+			G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stTrayPosition.stPocket.Apos;
+		END_IF
+		G_Robot.RobotKukaCmd.bRobotPickPCBA := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotPickPCBA THEN //Robot Pick PCBA 
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotPickPCBADone AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotPickPCBA := FALSE;
+				G_Manual.M20_bRobotPickPCBAPos := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	
+	//Robot Place PCBA
+	IF G_Manual.M20_bRobotPlacePCBAPos THEN
+		IF G_Manual.M20_bWithVisionData AND G_Vision.V20_stResultPalletPosition.Xpos > 0 AND G_Vision.V20_stResultPalletPosition.Ypos > 0 THEN 
+			G_Robot.RobotKukaCmd.rRobotPlace_X := G_Vision.V20_stResultPalletPosition.Xpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Vision.V20_stResultPalletPosition.Ypos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rPalletZaxisPlace; 
+			G_Robot.RobotKukaCmd.rRobotPlace_A := G_Vision.V20_stResultPalletPosition.Apos;
+		ELSE 
+			G_Robot.RobotKukaCmd.rRobotPlace_X := G_Values.VA20_stPalletPosition.stPocket.Xpos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Y := G_Values.VA20_stPalletPosition.stPocket.Ypos;
+			G_Robot.RobotKukaCmd.rRobotPlace_Z := G_Values.VA20_rPalletZaxisPlace; 
+			G_Robot.RobotKukaCmd.rRobotPlace_A := G_Values.VA20_stPalletPosition.stPocket.Apos;
+		END_IF
+		G_Robot.RobotKukaCmd.bRobotPlacePCBA := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotPlacePCBA THEN //Robot Place PCBA 
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotPlacePCBADone AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotPlacePCBA := FALSE;
+				G_Manual.M20_bRobotPlacePCBAPos := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	
+	//Robot Standby At Pallet
+	IF G_Manual.M20_bRobotAtStandbyPallet THEN
+		G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotStandbyAtPallet THEN
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotStandbyAtPalletDone AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotStandbyAtPallet := FALSE;
+				G_Manual.M20_bRobotAtStandbyPallet := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	
+	//Robot Standby At Tray
+	IF G_Manual.M20_bRobotAtStandbyTray THEN
+		G_Robot.RobotKukaCmd.bRobotStandbyAtTray := TRUE;
+		IF G_Robot.RobotKukaCmd.bRobotStandbyAtTray THEN
+			tondelay(IN:=TRUE,PT:=timeDone);
+			IF G_Robot.RobotKukaCmd.bRobotStandbyAtTrayDone AND tondelay.Q THEN
+				tondelay(IN:=FALSE);
+				G_Robot.RobotKukaCmd.bRobotStandbyAtTray := FALSE;
+				G_Manual.M20_bRobotAtStandbyTray := FALSE;
+			END_IF
+		END_IF
+	END_IF
+	
+ 
+	IF G_Manual.M20_bChangeRobotProgramID THEN
+		G_Robot.RobotKukaStandard.bAppID0 := BIT_TO_BOOL(G_Manual.M20_byteRobotProgramID.0);
+		G_Robot.RobotKukaStandard.bAppID1 := BIT_TO_BOOL(G_Manual.M20_byteRobotProgramID.1);
+		G_Robot.RobotKukaStandard.bAppID2 := BIT_TO_BOOL(G_Manual.M20_byteRobotProgramID.2);
+		G_Manual.M20_bChangeRobotProgramID := FALSE;
+	END_IF
+END_IF
+	]]></ST>
+    </Implementation>
+    <LineIds Name="ST20_RobotManualControl">
+      <LineId Id="936" Count="1" />
+      <LineId Id="1077" Count="155" />
+      <LineId Id="639" Count="0" />
+      <LineId Id="1233" Count="0" />
+      <LineId Id="1235" Count="27" />
+      <LineId Id="875" Count="0" />
+      <LineId Id="654" Count="4" />
+      <LineId Id="1335" Count="11" />
+      <LineId Id="1402" Count="2" />
+      <LineId Id="1529" Count="2" />
+      <LineId Id="1528" Count="0" />
+      <LineId Id="1405" Count="8" />
+      <LineId Id="1347" Count="0" />
+      <LineId Id="1414" Count="0" />
+      <LineId Id="1348" Count="11" />
+      <LineId Id="1415" Count="0" />
+      <LineId Id="1417" Count="1" />
+      <LineId Id="1525" Count="2" />
+      <LineId Id="1524" Count="0" />
+      <LineId Id="1419" Count="8" />
+      <LineId Id="1437" Count="0" />
+      <LineId Id="1540" Count="0" />
+      <LineId Id="1438" Count="0" />
+      <LineId Id="1449" Count="19" />
+      <LineId Id="1471" Count="0" />
+      <LineId Id="1439" Count="0" />
+      <LineId Id="1443" Count="0" />
+      <LineId Id="1475" Count="0" />
+      <LineId Id="1499" Count="19" />
+      <LineId Id="1521" Count="0" />
+      <LineId Id="1472" Count="0" />
+      <LineId Id="1522" Count="0" />
+      <LineId Id="1542" Count="23" />
+      <LineId Id="1541" Count="0" />
+      <LineId Id="1523" Count="0" />
+      <LineId Id="1386" Count="5" />
+      <LineId Id="890" Count="0" />
+      <LineId Id="670" Count="0" />
+      <LineId Id="1263" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

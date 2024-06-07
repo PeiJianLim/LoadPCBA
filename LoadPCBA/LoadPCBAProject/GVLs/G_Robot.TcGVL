@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="G_Robot" Id="{dba96b37-18d1-4400-9278-6ae328d35e60}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	RobotKukaStandard : ST_ScaraRobot;
+	RobotKukaCurrentPos : ST_ScaraCurrentPos;
+	RobotKukaCmd : ST_ScaraRobotCmd;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Mapping_EIP" Id="{a704169c-d15a-4beb-a1a2-a9808eb4c519}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Mapping_EIP
+VAR
+	fb_Place_PosX: FB_RealToBytes;
+	fb_Place_PosY: FB_RealToBytes;
+	fb_Place_PosZ: FB_RealToBytes;
+	fb_Place_PosA: FB_RealToBytes;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//============================================================================================================
+// PLC to Robot
+//============================================================================================================
+//Standard Byte 1 - 25
+DeviceMapping.PLC_To_KUKA[1].0 := G_Robot.RobotKukaStandard.bStop; 			//Byte1.1//
+DeviceMapping.PLC_To_KUKA[1].1 := G_Robot.RobotKukaStandard.bStart; 		//Byte1.2//
+DeviceMapping.PLC_To_KUKA[1].2 := G_Robot.RobotKukaStandard.bPause;			//Byte1.3//
+DeviceMapping.PLC_To_KUKA[1].3 := G_Robot.RobotKukaStandard.bContinue; 		//Byte1.4//
+DeviceMapping.PLC_To_KUKA[1].4 := G_Robot.RobotKukaStandard.bReset; 		//Byte1.5//
+DeviceMapping.PLC_To_KUKA[1].5 := G_Robot.RobotKukaStandard.bEnable; 		//Byte1.6//
+DeviceMapping.PLC_To_KUKA[1].6 := G_Robot.RobotKukaStandard.bAppID0;		//Byte1.7//	
+DeviceMapping.PLC_To_KUKA[1].7 := G_Robot.RobotKukaStandard.bAppID1;		//Byte1.8//	
+
+DeviceMapping.PLC_To_KUKA[2].0 := G_Robot.RobotKukaStandard.bAppID2;			//Byte2.1//		
+DeviceMapping.PLC_To_KUKA[2].1 := G_Robot.RobotKukaStandard.bAcknowledgeMsg;	//Byte2.2//
+DeviceMapping.PLC_To_KUKA[2].2 := G_Robot.RobotKukaStandard.bHome;				//Byte2.3//
+DeviceMapping.PLC_To_KUKA[2].3 := G_Robot.RobotKukaStandard.bStandbyPosition;	//Byte2.4//
+DeviceMapping.PLC_To_KUKA[2].4 := G_Robot.RobotKukaStandard.bClearMessage;		//Byte2.5//
+
+//PLC To robot Position 5 - 20 (Reserve)
+
+fb_Place_PosX(
+	IN_DATA:= G_Robot.RobotKukaCmd.rRobotPlace_X, 
+	UpperByteA=> DeviceMapping.PLC_To_KUKA[5], 
+	UpperByteB=> DeviceMapping.PLC_To_KUKA[6], 
+	LowerByteC=> DeviceMapping.PLC_To_KUKA[7], 
+	LowerByteD=> DeviceMapping.PLC_To_KUKA[8]);
+	
+fb_Place_PosY(
+	IN_DATA:= G_Robot.RobotKukaCmd.rRobotPlace_Y, 
+	UpperByteA=> DeviceMapping.PLC_To_KUKA[9], 
+	UpperByteB=> DeviceMapping.PLC_To_KUKA[10], 
+	LowerByteC=> DeviceMapping.PLC_To_KUKA[11], 
+	LowerByteD=> DeviceMapping.PLC_To_KUKA[12]);
+	
+fb_Place_PosZ(
+	IN_DATA:= G_Robot.RobotKukaCmd.rRobotPlace_Z, 
+	UpperByteA=> DeviceMapping.PLC_To_KUKA[13], 
+	UpperByteB=> DeviceMapping.PLC_To_KUKA[14], 
+	LowerByteC=> DeviceMapping.PLC_To_KUKA[15], 
+	LowerByteD=> DeviceMapping.PLC_To_KUKA[16]);
+	
+fb_Place_PosA(
+	IN_DATA:= G_Robot.RobotKukaCmd.rRobotPlace_A, 
+	UpperByteA=> DeviceMapping.PLC_To_KUKA[17], 
+	UpperByteB=> DeviceMapping.PLC_To_KUKA[18], 
+	LowerByteC=> DeviceMapping.PLC_To_KUKA[19], 
+	LowerByteD=> DeviceMapping.PLC_To_KUKA[20]);
+	
+//Standard Command Byte 21 - 128	
+DeviceMapping.PLC_To_KUKA[21].0 := G_Robot.RobotKukaCmd.bRobotPalletFiducial1;
+DeviceMapping.PLC_To_KUKA[21].1 := G_Robot.RobotKukaCmd.bRobotPalletFiducial2;
+DeviceMapping.PLC_To_KUKA[21].2 := G_Robot.RobotKukaCmd.bRobotTrayFiducial1;
+DeviceMapping.PLC_To_KUKA[21].3 := G_Robot.RobotKukaCmd.bRobotTrayFiducial2;
+DeviceMapping.PLC_To_KUKA[21].4 := G_Robot.RobotKukaCmd.bRobotPickPCBA;
+DeviceMapping.PLC_To_KUKA[21].5 := G_Robot.RobotKukaCmd.bRobotPlacePCBA;
+DeviceMapping.PLC_To_KUKA[21].6 := G_Robot.RobotKukaCmd.bRobotStandbyAtPallet;
+DeviceMapping.PLC_To_KUKA[21].7 := G_Robot.RobotKukaCmd.bRobotStandbyAtTray;
+
+DeviceMapping.PLC_To_KUKA[22].0 := G_Robot.RobotKukaCmd.bRobotGripperOnOff;
+DeviceMapping.PLC_To_KUKA[22].1 := G_Robot.RobotKukaCmd.bRobotCheckDatum;
+DeviceMapping.PLC_To_KUKA[22].2 := G_Robot.RobotKukaCmd.bRobotDryRun;
+
+//============================================================================================================
+// Robot to PLC
+//============================================================================================================
+//Standard Byte 1 - 25
+G_Robot.RobotKukaStandard.bReady 				:= DeviceMapping.KUKA_To_PLC[1].0;  //Byte1.1//
+G_Robot.RobotKukaStandard.bRunning 				:= DeviceMapping.KUKA_To_PLC[1].1;  //Byte1.2//
+G_Robot.RobotKukaStandard.bPaused 				:= DeviceMapping.KUKA_To_PLC[1].2;  //Byte1.3//
+G_Robot.RobotKukaStandard.bStopped 				:= DeviceMapping.KUKA_To_PLC[1].3;  //Byte1.4//
+G_Robot.RobotKukaStandard.bError 				:= DeviceMapping.KUKA_To_PLC[1].4;  //Byte1.5// 
+G_Robot.RobotKukaStandard.bSafeguardON 			:= DeviceMapping.KUKA_To_PLC[1].5;  //Byte1.6//
+G_Robot.RobotKukaStandard.bEstopON 				:= DeviceMapping.KUKA_To_PLC[1].6;  //Byte1.7//
+G_Robot.RobotKukaStandard.bSerror 				:= DeviceMapping.KUKA_To_PLC[1].7;  //Byte1.8//
+
+G_Robot.RobotKukaStandard.bWarning				:= DeviceMapping.KUKA_To_PLC[2].0;  //Byte2.1//
+G_Robot.RobotKukaStandard.bEnabled				:= DeviceMapping.KUKA_To_PLC[2].1;  //Byte2.2//
+G_Robot.RobotKukaStandard.bAcknowledged			:= DeviceMapping.KUKA_To_PLC[2].2;  //Byte2.3//
+G_Robot.RobotKukaStandard.bHomeDone				:= DeviceMapping.KUKA_To_PLC[2].3;  //Byte2.4//
+G_Robot.RobotKukaStandard.bStandbyPositionDone	:= DeviceMapping.KUKA_To_PLC[2].4;  //Byte2.5
+
+//Get Position - Start Byte 5 - 20
+G_Robot.RobotKukaStandard.wOutUpperX			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[6], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[5]);
+G_Robot.RobotKukaStandard.wOutLowerX			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[8], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[7]);
+G_Robot.RobotKukaStandard.wOutUpperY			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[10], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[9]);
+G_Robot.RobotKukaStandard.wOutLowerY			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[12], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[11]);
+G_Robot.RobotKukaStandard.wOutUpperZ			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[14], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[13]);
+G_Robot.RobotKukaStandard.wOutLowerZ			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[16], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[15]);
+G_Robot.RobotKukaStandard.wOutUpperA			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[18], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[17]);
+G_Robot.RobotKukaStandard.wOutLowerA			:= F_BytesToWord(IN_UpperByte:= DeviceMapping.KUKA_To_PLC[20], IN_LowerByte:= DeviceMapping.KUKA_To_PLC[19]);
+
+G_Robot.RobotKukaCurrentPos.RobotCurrentPos_X := F_ReadRobotPosition(IN_Upper:= G_Robot.RobotKukaStandard.wOutUpperX, IN_Lower:= G_Robot.RobotKukaStandard.wOutLowerX);
+G_Robot.RobotKukaCurrentPos.RobotCurrentPos_Y := F_ReadRobotPosition(IN_Upper:= G_Robot.RobotKukaStandard.wOutUpperY, IN_Lower:= G_Robot.RobotKukaStandard.wOutLowerY);
+G_Robot.RobotKukaCurrentPos.RobotCurrentPos_Z := F_ReadRobotPosition(IN_Upper:= G_Robot.RobotKukaStandard.wOutUpperZ, IN_Lower:= G_Robot.RobotKukaStandard.wOutLowerZ);
+G_Robot.RobotKukaCurrentPos.RobotCurrentPos_A := F_ReadRobotPosition(IN_Upper:= G_Robot.RobotKukaStandard.wOutUpperA, IN_Lower:= G_Robot.RobotKukaStandard.wOutLowerA);
+
+//Standard Command Byte 21 - 128
+G_Robot.RobotKukaCmd.bRobotPalletFiducial1Done		:= DeviceMapping.KUKA_To_PLC[21].0;
+G_Robot.RobotKukaCmd.bRobotPalletFiducial2Done		:= DeviceMapping.KUKA_To_PLC[21].1;
+G_Robot.RobotKukaCmd.bRobotTrayFiducial1Done		:= DeviceMapping.KUKA_To_PLC[21].2;
+G_Robot.RobotKukaCmd.bRobotTrayFiducial2Done		:= DeviceMapping.KUKA_To_PLC[21].3;
+G_Robot.RobotKukaCmd.bRobotPickPCBADone				:= DeviceMapping.KUKA_To_PLC[21].4;
+G_Robot.RobotKukaCmd.bRobotPlacePCBADone			:= DeviceMapping.KUKA_To_PLC[21].5;
+G_Robot.RobotKukaCmd.bRobotStandbyAtPalletDone		:= DeviceMapping.KUKA_To_PLC[21].6;
+G_Robot.RobotKukaCmd.bRobotStandbyAtTrayDone		:= DeviceMapping.KUKA_To_PLC[21].7;
+
+G_Robot.RobotKukaCmd.bRobotGripperOnDone			:= DeviceMapping.KUKA_To_PLC[22].0;
+G_Robot.RobotKukaCmd.bRobotCheckDatumDone			:= DeviceMapping.KUKA_To_PLC[22].1;
+G_Robot.RobotKukaCmd.bRobotFailPlaceOverPress		:= DeviceMapping.KUKA_To_PLC[22].2;
+
+//============================================================================================================
+// Scanner Tray to PLC
+//============================================================================================================
+G_Scanner.In_Signal_Tray.In_TriggerReady		:= DeviceMapping.BarcodeScanner_To_PLC.In_TriggerReady;
+G_Scanner.In_Signal_Tray.In_TriggerAck			:= DeviceMapping.BarcodeScanner_To_PLC.In_TriggerAck;
+G_Scanner.In_Signal_Tray.In_Acquiring			:= DeviceMapping.BarcodeScanner_To_PLC.In_Acquiring;
+G_Scanner.In_Signal_Tray.In_MissedAcq			:= DeviceMapping.BarcodeScanner_To_PLC.In_MissedAcq;	
+G_Scanner.In_Signal_Tray.In_noname0_arrBIT_0 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_0;	
+G_Scanner.In_Signal_Tray.In_noname0_arrBIT_1 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_1;
+G_Scanner.In_Signal_Tray.In_noname0_arrBIT_2 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_2;
+G_Scanner.In_Signal_Tray.In_noname0_arrBIT_3 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_3;	
+G_Scanner.In_Signal_Tray.In_Decoding		 	:= DeviceMapping.BarcodeScanner_To_PLC.In_Decoding;
+G_Scanner.In_Signal_Tray.In_DecodeComplete		:= DeviceMapping.BarcodeScanner_To_PLC.In_DecodeComplete;
+G_Scanner.In_Signal_Tray.In_ResultsBufferOverrun:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultsBufferOverrun;
+G_Scanner.In_Signal_Tray.In_ResultAvailable		:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultAvailable;
+G_Scanner.In_Signal_Tray.In_noname1_arrBIT_0	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname1_arrBIT_0;
+G_Scanner.In_Signal_Tray.In_noname1_arrBIT_1	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname1_arrBIT_1;
+G_Scanner.In_Signal_Tray.In_noname1_arrBIT_2	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname1_arrBIT_2;
+G_Scanner.In_Signal_Tray.In_GeneralFault		:= DeviceMapping.BarcodeScanner_To_PLC.In_GeneralFault;
+G_Scanner.In_Signal_Tray.In_SoftEventAck0		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck0;
+G_Scanner.In_Signal_Tray.In_SoftEventAck1		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck1;
+G_Scanner.In_Signal_Tray.In_SoftEventAck2		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck2;
+G_Scanner.In_Signal_Tray.In_SoftEventAck3		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck3;
+G_Scanner.In_Signal_Tray.In_SoftEventAck4		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck4;
+G_Scanner.In_Signal_Tray.In_SoftEventAck5		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck5;
+G_Scanner.In_Signal_Tray.In_SoftEventAck6		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck6;
+G_Scanner.In_Signal_Tray.In_SoftEventAck7		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck7;
+G_Scanner.In_Signal_Tray.In_noname2_arrBYTE_0	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname2_arrBYTE_0;
+G_Scanner.In_Signal_Tray.In_noname2_arrBYTE_1	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname2_arrBYTE_1;
+G_Scanner.In_Signal_Tray.In_noname2_arrBYTE_2	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname2_arrBYTE_2;
+G_Scanner.In_Signal_Tray.In_TriggerID			:= DeviceMapping.BarcodeScanner_To_PLC.In_TriggerID;
+G_Scanner.In_Signal_Tray.In_ResultID			:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultID;
+G_Scanner.In_Signal_Tray.In_ResultCode			:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultCode;
+G_Scanner.In_Signal_Tray.In_ResultExtended		:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultExtended;
+G_Scanner.In_Signal_Tray.In_ResultLength		:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultLength;
+G_Scanner.In_Signal_Tray.In_ResultData			:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultData;
+
+
+
+//============================================================================================================
+// PLC to Scanner Tray
+//============================================================================================================
+DeviceMapping.PLC_To_BarcodeScanner.Out_TriggerEnable 		:= G_Scanner.Out_Signal_Tray.Out_TriggerEnable;
+DeviceMapping.PLC_To_BarcodeScanner.Out_Trigger 			:= G_Scanner.Out_Signal_Tray.Out_Trigger;
+DeviceMapping.PLC_To_BarcodeScanner.Out_BufferResultsEnable	:= G_Scanner.Out_Signal_Tray.Out_BufferResultsEnable;
+DeviceMapping.PLC_To_BarcodeScanner.Out_ResultAck	 		:= G_Scanner.Out_Signal_Tray.Out_ResultAck;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_0 	:= G_Scanner.Out_Signal_Tray.Out_noname0_arrBIT_0;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_1 	:= G_Scanner.Out_Signal_Tray.Out_noname0_arrBIT_1;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_2 	:= G_Scanner.Out_Signal_Tray.Out_noname0_arrBIT_2;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_3 	:= G_Scanner.Out_Signal_Tray.Out_noname0_arrBIT_3;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent0	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent0;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent1	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent1;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent2	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent2;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent3	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent3;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent4	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent4;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent5	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent5;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent6	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent6;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent7	 		:= G_Scanner.Out_Signal_Tray.Out_SoftEvent7;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname1_arrBYTE_0	:= G_Scanner.Out_Signal_Tray.Out_noname1_arrBYTE_0;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname1_arrBYTE_1	:= G_Scanner.Out_Signal_Tray.Out_noname1_arrBYTE_1;
+DeviceMapping.PLC_To_BarcodeScanner.Out_UserDataOption		:= G_Scanner.Out_Signal_Tray.Out_UserDataOption;
+DeviceMapping.PLC_To_BarcodeScanner.Out_UserDataLength		:= G_Scanner.Out_Signal_Tray.Out_UserDataLength;
+DeviceMapping.PLC_To_BarcodeScanner.Out_UserData			:= G_Scanner.Out_Signal_Tray.Out_UserData;
+
+
+//============================================================================================================
+// Scanner Conveyor to PLC
+//============================================================================================================
+G_Scanner.In_Signal_Conveyor.In_TriggerReady		:= DeviceMapping.BarcodeScanner_To_PLC.In_TriggerReady;
+G_Scanner.In_Signal_Conveyor.In_TriggerAck			:= DeviceMapping.BarcodeScanner_To_PLC.In_TriggerAck;
+G_Scanner.In_Signal_Conveyor.In_Acquiring			:= DeviceMapping.BarcodeScanner_To_PLC.In_Acquiring;
+G_Scanner.In_Signal_Conveyor.In_MissedAcq			:= DeviceMapping.BarcodeScanner_To_PLC.In_MissedAcq;	
+G_Scanner.In_Signal_Conveyor.In_noname0_arrBIT_0 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_0;	
+G_Scanner.In_Signal_Conveyor.In_noname0_arrBIT_1 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_1;
+G_Scanner.In_Signal_Conveyor.In_noname0_arrBIT_2 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_2;
+G_Scanner.In_Signal_Conveyor.In_noname0_arrBIT_3 	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname0_arrBIT_3;	
+G_Scanner.In_Signal_Conveyor.In_Decoding		 	:= DeviceMapping.BarcodeScanner_To_PLC.In_Decoding;
+G_Scanner.In_Signal_Conveyor.In_DecodeComplete		:= DeviceMapping.BarcodeScanner_To_PLC.In_DecodeComplete;
+G_Scanner.In_Signal_Conveyor.In_ResultsBufferOverrun:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultsBufferOverrun;
+G_Scanner.In_Signal_Conveyor.In_ResultAvailable		:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultAvailable;
+G_Scanner.In_Signal_Conveyor.In_noname1_arrBIT_0	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname1_arrBIT_0;
+G_Scanner.In_Signal_Conveyor.In_noname1_arrBIT_1	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname1_arrBIT_1;
+G_Scanner.In_Signal_Conveyor.In_noname1_arrBIT_2	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname1_arrBIT_2;
+G_Scanner.In_Signal_Conveyor.In_GeneralFault		:= DeviceMapping.BarcodeScanner_To_PLC.In_GeneralFault;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck0		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck0;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck1		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck1;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck2		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck2;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck3		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck3;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck4		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck4;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck5		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck5;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck6		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck6;
+G_Scanner.In_Signal_Conveyor.In_SoftEventAck7		:= DeviceMapping.BarcodeScanner_To_PLC.In_SoftEventAck7;
+G_Scanner.In_Signal_Conveyor.In_noname2_arrBYTE_0	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname2_arrBYTE_0;
+G_Scanner.In_Signal_Conveyor.In_noname2_arrBYTE_1	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname2_arrBYTE_1;
+G_Scanner.In_Signal_Conveyor.In_noname2_arrBYTE_2	:= DeviceMapping.BarcodeScanner_To_PLC.In_noname2_arrBYTE_2;
+G_Scanner.In_Signal_Conveyor.In_TriggerID			:= DeviceMapping.BarcodeScanner_To_PLC.In_TriggerID;
+G_Scanner.In_Signal_Conveyor.In_ResultID			:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultID;
+G_Scanner.In_Signal_Conveyor.In_ResultCode			:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultCode;
+G_Scanner.In_Signal_Conveyor.In_ResultExtended		:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultExtended;
+G_Scanner.In_Signal_Conveyor.In_ResultLength		:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultLength;
+G_Scanner.In_Signal_Conveyor.In_ResultData			:= DeviceMapping.BarcodeScanner_To_PLC.In_ResultData;
+
+
+
+//============================================================================================================
+// PLC to Scanner Conveyor
+//============================================================================================================
+DeviceMapping.PLC_To_BarcodeScanner.Out_TriggerEnable 		:= G_Scanner.Out_Signal_Conveyor.Out_TriggerEnable;
+DeviceMapping.PLC_To_BarcodeScanner.Out_Trigger 			:= G_Scanner.Out_Signal_Conveyor.Out_Trigger;
+DeviceMapping.PLC_To_BarcodeScanner.Out_BufferResultsEnable	:= G_Scanner.Out_Signal_Conveyor.Out_BufferResultsEnable;
+DeviceMapping.PLC_To_BarcodeScanner.Out_ResultAck	 		:= G_Scanner.Out_Signal_Conveyor.Out_ResultAck;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_0 	:= G_Scanner.Out_Signal_Conveyor.Out_noname0_arrBIT_0;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_1 	:= G_Scanner.Out_Signal_Conveyor.Out_noname0_arrBIT_1;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_2 	:= G_Scanner.Out_Signal_Conveyor.Out_noname0_arrBIT_2;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname0_arrBIT_3 	:= G_Scanner.Out_Signal_Conveyor.Out_noname0_arrBIT_3;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent0	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent0;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent1	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent1;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent2	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent2;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent3	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent3;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent4	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent4;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent5	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent5;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent6	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent6;
+DeviceMapping.PLC_To_BarcodeScanner.Out_SoftEvent7	 		:= G_Scanner.Out_Signal_Conveyor.Out_SoftEvent7;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname1_arrBYTE_0	:= G_Scanner.Out_Signal_Conveyor.Out_noname1_arrBYTE_0;
+DeviceMapping.PLC_To_BarcodeScanner.Out_noname1_arrBYTE_1	:= G_Scanner.Out_Signal_Conveyor.Out_noname1_arrBYTE_1;
+DeviceMapping.PLC_To_BarcodeScanner.Out_UserDataOption		:= G_Scanner.Out_Signal_Conveyor.Out_UserDataOption;
+DeviceMapping.PLC_To_BarcodeScanner.Out_UserDataLength		:= G_Scanner.Out_Signal_Conveyor.Out_UserDataLength;
+DeviceMapping.PLC_To_BarcodeScanner.Out_UserData			:= G_Scanner.Out_Signal_Conveyor.Out_UserData;
+
+
+
+
+
+
+
+
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="Mapping_EIP">
+      <LineId Id="104" Count="2" />
+      <LineId Id="228" Count="13" />
+      <LineId Id="414" Count="0" />
+      <LineId Id="242" Count="33" />
+      <LineId Id="320" Count="0" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="276" Count="0" />
+      <LineId Id="321" Count="1" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="411" Count="1" />
+      <LineId Id="98" Count="3" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="279" Count="12" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="66" Count="5" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="76" Count="2" />
+      <LineId Id="410" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="324" Count="1" />
+      <LineId Id="300" Count="1" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="329" Count="1" />
+      <LineId Id="328" Count="0" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="413" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="142" Count="1" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="146" Count="1" />
+      <LineId Id="169" Count="4" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="177" Count="5" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="186" Count="6" />
+      <LineId Id="194" Count="7" />
+      <LineId Id="148" Count="3" />
+      <LineId Id="167" Count="1" />
+      <LineId Id="152" Count="2" />
+      <LineId Id="203" Count="15" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="219" Count="1" />
+      <LineId Id="339" Count="63" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="156" Count="10" />
+      <LineId Id="145" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

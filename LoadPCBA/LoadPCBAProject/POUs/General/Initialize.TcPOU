@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Initialize" Id="{f890748c-baff-401a-b907-3c39079f0807}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Initialize
+VAR
+	Initialize_RTrig: R_TRIG;
+	iStep : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Initialize_RTrig(CLK:= G_MachineControl.bInitialize);
+IF Initialize_RTrig.Q THEN
+	G_MachineControl.bInitializeDone := FALSE;
+	iStep := 10;
+END_IF
+
+CASE iStep OF
+	10:
+		//G_Home.H10_bHome := TRUE;
+		G_Home.H20_bHome := TRUE;
+		iStep := 20;
+		
+	20:
+		IF G_Home.H20_bHomeDone THEN
+			G_MachineControl.bInitialize := FALSE;
+			G_MachineControl.bInitializeDone := TRUE;
+			iStep := 0;
+		END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="Initialize">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="18" Count="3" />
+      <LineId Id="23" Count="1" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
